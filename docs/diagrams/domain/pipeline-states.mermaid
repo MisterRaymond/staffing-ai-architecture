@@ -1,0 +1,53 @@
+```mermaid
+stateDiagram-v2
+    [*] --> NEW: Candidat postule ou importé par recruteur
+
+    NEW --> PRESELECTED: Recruteur valide le profil
+    NEW --> REJECTED: Profil non pertinent
+    
+    PRESELECTED --> INTERNAL_INTERVIEW: Planification entretien interne
+    PRESELECTED --> REJECTED: Ne correspond pas aux critères
+    
+    INTERNAL_INTERVIEW --> PROPOSED_TO_CLIENT: Entretien réussi — profil envoyé au client
+    INTERNAL_INTERVIEW --> REJECTED: Entretien non concluant
+    
+    PROPOSED_TO_CLIENT --> CLIENT_INTERVIEW: Client accepte de rencontrer le candidat
+    PROPOSED_TO_CLIENT --> REJECTED: Client refuse le profil
+    
+    CLIENT_INTERVIEW --> VALIDATED: Client valide le candidat
+    CLIENT_INTERVIEW --> REJECTED: Client refuse après entretien
+    
+    VALIDATED --> ON_MISSION: Contrat signé — mission démarre
+    VALIDATED --> CANCELLED: Désistement candidat ou client
+    
+    ON_MISSION --> MISSION_COMPLETED: Fin de mission normale
+    ON_MISSION --> RENEWED: Mission prolongée / renouvellement
+    ON_MISSION --> EARLY_TERMINATION: Fin anticipée
+    
+    RENEWED --> ON_MISSION: Nouvelle période
+
+    state REJECTED {
+        [*] --> rejection_logged
+        rejection_logged: Raison enregistrée
+        rejection_logged: Candidat retourne dans le vivier
+    }
+
+    MISSION_COMPLETED --> [*]
+    EARLY_TERMINATION --> [*]
+    CANCELLED --> [*]
+
+    note right of NEW
+        Le recruteur peut voir le score
+        de matching IA à cette étape
+    end note
+
+    note right of ON_MISSION
+        Déclenche la création du Placement
+        et des FinancialRecords mensuels
+    end note
+
+    note right of RENEWED
+        Nouveau Placement créé
+        avec dates mises à jour
+    end note
+```

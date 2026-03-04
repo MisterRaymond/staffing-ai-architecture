@@ -1,0 +1,128 @@
+```mermaid
+classDiagram
+    class Plan {
+        <<enumeration>>
+        TRIAL
+        STARTER
+        PRO
+        ENTERPRISE
+    }
+
+    class OrgStatus {
+        <<enumeration>>
+        ACTIVE
+        SUSPENDED
+        CHURNED
+    }
+
+    class UserRole {
+        <<enumeration>>
+        SUPER_ADMIN
+        ADMIN
+        RECRUITER
+        MANAGER
+        VIEWER
+    }
+
+    class MissionStatus {
+        <<enumeration>>
+        DRAFT
+        OPEN
+        IN_PROGRESS
+        FILLED
+        CLOSED
+        CANCELLED
+    }
+
+    class PipelineStage {
+        <<enumeration>>
+        NEW
+        PRESELECTED
+        INTERNAL_INTERVIEW
+        PROPOSED_TO_CLIENT
+        CLIENT_INTERVIEW
+        VALIDATED
+        ON_MISSION
+        REJECTED
+        CANCELLED
+    }
+
+    class SkillLevel {
+        <<enumeration>>
+        BEGINNER
+        INTERMEDIATE
+        ADVANCED
+        EXPERT
+    }
+
+    class SkillCategory {
+        <<enumeration>>
+        LANGUAGE
+        FRAMEWORK
+        DATABASE
+        CLOUD
+        DEVOPS
+        METHODOLOGY
+        SOFT_SKILL
+        OTHER
+    }
+
+    class Recommendation {
+        <<enumeration>>
+        STRONG_MATCH
+        GOOD_MATCH
+        PARTIAL_MATCH
+        WEAK_MATCH
+    }
+
+    class ContractType {
+        <<enumeration>>
+        CDI
+        CDD
+        FREELANCE
+        PORTAGE
+    }
+
+    class RemotePolicy {
+        <<enumeration>>
+        ON_SITE
+        HYBRID
+        FULL_REMOTE
+    }
+
+    class Availability {
+        <<enumeration>>
+        IMMEDIATE
+        ONE_MONTH
+        TWO_MONTHS
+        THREE_MONTHS_PLUS
+        NOT_AVAILABLE
+    }
+
+    class Seniority {
+        <<enumeration>>
+        JUNIOR
+        MID
+        SENIOR
+        LEAD
+        ARCHITECT
+    }
+
+    class PlacementStatus {
+        <<enumeration>>
+        ACTIVE
+        COMPLETED
+        EARLY_TERMINATION
+        RENEWED
+    }
+
+    class AuditAction {
+        <<enumeration>>
+        CREATE
+        UPDATE
+        DELETE
+        LOGIN
+        EXPORT
+        IMPERSONATE
+    }
+```

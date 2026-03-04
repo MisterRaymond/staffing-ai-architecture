@@ -1,0 +1,228 @@
+```mermaid
+erDiagram
+    Organization ||--o{ User : "emploie"
+    Organization ||--o{ Candidate : "gère"
+    Organization ||--o{ Client : "a comme client"
+    Organization ||--o{ Mission : "ouvre"
+    Organization ||--o{ Placement : "réalise"
+    Organization ||--o{ Application : "contient"
+    Organization ||--o{ AuditLog : "journalise"
+
+    Client ||--o{ Mission : "commande"
+    Client ||--o{ Placement : "accueille"
+    
+    Candidate ||--o{ Skill : "possède"
+    Candidate ||--o{ Experience : "a vécu"
+    Candidate ||--o{ Application : "postule"
+    Candidate ||--o{ MatchScore : "est évalué"
+    Candidate ||--o{ Placement : "est placé"
+    
+    Mission ||--o{ RequiredSkill : "exige"
+    Mission ||--o{ MatchScore : "reçoit"
+    Mission ||--o{ Application : "reçoit"
+    Mission ||--o{ Placement : "aboutit"
+    
+    Placement ||--o{ FinancialRecord : "génère"
+
+    User ||--o{ Application : "gère"
+    User ||--o{ AuditLog : "déclenche"
+
+    Organization {
+        string id PK "cuid()"
+        string name "NOT NULL"
+        string slug UK "NOT NULL — sous-domaine"
+        string logo "URL nullable"
+        enum plan "TRIAL | STARTER | PRO | ENTERPRISE"
+        enum status "ACTIVE | SUSPENDED | CHURNED"
+        datetime trialEndsAt "nullable"
+        string stripeCustomerId UK "nullable"
+        string stripeSubscriptionId UK "nullable"
+        json settings "Configuration tenant"
+        datetime createdAt "default now()"
+        datetime updatedAt "auto"
+    }
+
+    User {
+        string id PK "cuid()"
+        string clerkId UK "NOT NULL"
+        string email UK "NOT NULL"
+        string firstName "NOT NULL"
+        string lastName "NOT NULL"
+        string avatar "URL nullable"
+        enum role "ADMIN | RECRUITER | MANAGER | VIEWER"
+        string organizationId FK "NOT NULL"
+        datetime lastLoginAt "nullable"
+        datetime createdAt "default now()"
+    }
+
+    Candidate {
+        string id PK "cuid()"
+        string firstName "NOT NULL"
+        string lastName "NOT NULL"
+        string email "NOT NULL"
+        string phone "nullable"
+        string location "nullable"
+        string cvFileUrl "URL du CV stocké"
+        string cvFileName "Nom original du fichier"
+        json cvParsedData "Données extraites par IA"
+        enum availability "IMMEDIATE | 1M | 2M | 3M+ | NOT_AVAILABLE"
+        datetime availableFrom "nullable"
+        decimal desiredSalaryAnnual "nullable"
+        decimal desiredTJM "nullable"
+        enum preferredContract "CDI | CDD | FREELANCE | PORTAGE"
+        enum preferredRemote "ON_SITE | HYBRID | FULL_REMOTE"
+        string linkedinUrl "nullable"
+        string source "Origine du candidat"
+        text notes "nullable"
+        string organizationId FK "NOT NULL"
+        string createdById FK "User qui a importé"
+        datetime createdAt "default now()"
+        datetime updatedAt "auto"
+    }
+
+    Skill {
+        string id PK "cuid()"
+        string name "NOT NULL — ex: React.js"
+        string normalizedName "NOT NULL — ex: react"
+        enum category "LANGUAGE | FRAMEWORK | DATABASE | CLOUD | DEVOPS | SOFT_SKILL | OTHER"
+        enum level "BEGINNER | INTERMEDIATE | ADVANCED | EXPERT"
+        int yearsOfExperience "nullable"
+        boolean isVerified "default false"
+        string candidateId FK "NOT NULL"
+    }
+
+    Experience {
+        string id PK "cuid()"
+        string companyName "NOT NULL"
+        string jobTitle "NOT NULL"
+        text description "nullable"
+        datetime startDate "NOT NULL"
+        datetime endDate "nullable"
+        boolean isCurrent "default false"
+        json technologies "Array de strings"
+        string candidateId FK "NOT NULL"
+    }
+
+    Client {
+        string id PK "cuid()"
+        string companyName "NOT NULL"
+        string sector "nullable"
+        string contactName "NOT NULL"
+        string contactEmail "NOT NULL"
+        string contactPhone "nullable"
+        string address "nullable"
+        text notes "nullable"
+        decimal defaultTJM "TJM habituel du client"
+        string organizationId FK "NOT NULL"
+        datetime createdAt "default now()"
+    }
+
+    Mission {
+        string id PK "cuid()"
+        string title "NOT NULL"
+        text description "NOT NULL"
+        string clientId FK "NOT NULL"
+        decimal tjmClient "TJM de vente au client"
+        decimal tjmBudgetMax "Budget max du client"
+        enum status "DRAFT | OPEN | IN_PROGRESS | FILLED | CLOSED | CANCELLED"
+        datetime startDate "nullable"
+        datetime estimatedEndDate "nullable"
+        int estimatedDurationMonths "nullable"
+        string location "nullable"
+        enum remotePolicy "ON_SITE | HYBRID | FULL_REMOTE"
+        enum requiredSeniority "JUNIOR | MID | SENIOR | LEAD | ARCHITECT"
+        int positionsCount "default 1"
+        int positionsFilled "default 0"
+        string organizationId FK "NOT NULL"
+        string createdById FK "NOT NULL"
+        datetime createdAt "default now()"
+        datetime updatedAt "auto"
+    }
+
+    RequiredSkill {
+        string id PK "cuid()"
+        string skillName "NOT NULL"
+        string normalizedName "NOT NULL"
+        enum minimumLevel "BEGINNER | INTERMEDIATE | ADVANCED | EXPERT"
+        boolean isMandatory "default true"
+        int weight "1-10 importance"
+        string missionId FK "NOT NULL"
+    }
+
+    MatchScore {
+        string id PK "cuid()"
+        string candidateId FK "NOT NULL"
+        string missionId FK "NOT NULL"
+        int globalScore "0-100"
+        int technicalScore "0-100"
+        int seniorityScore "0-100"
+        int locationScore "0-100"
+        int availabilityScore "0-100"
+        json skillMatchDetail "Détail par compétence"
+        json strengths "Array de strings"
+        json gaps "Array de strings"
+        enum recommendation "STRONG | GOOD | PARTIAL | WEAK"
+        text aiExplanation "Explication du scoring IA"
+        datetime computedAt "default now()"
+    }
+
+    Application {
+        string id PK "cuid()"
+        string candidateId FK "NOT NULL"
+        string missionId FK "NOT NULL"
+        enum stage "NEW | PRESELECTED | INTERNAL_INTERVIEW | PROPOSED | CLIENT_INTERVIEW | VALIDATED | ON_MISSION | REJECTED | CANCELLED"
+        text notes "nullable"
+        string rejectionReason "nullable"
+        datetime interviewDate "nullable"
+        string assignedToId FK "Recruteur assigné"
+        string organizationId FK "NOT NULL"
+        datetime appliedAt "default now()"
+        datetime updatedAt "auto"
+    }
+
+    Placement {
+        string id PK "cuid()"
+        string candidateId FK "NOT NULL"
+        string missionId FK "NOT NULL"
+        string clientId FK "NOT NULL"
+        datetime startDate "NOT NULL"
+        datetime endDate "Fin prévue"
+        datetime actualEndDate "Fin réelle nullable"
+        enum contractType "CDI | CDD | FREELANCE | PORTAGE"
+        enum status "ACTIVE | COMPLETED | EARLY_TERMINATION | RENEWED"
+        string organizationId FK "NOT NULL"
+        datetime createdAt "default now()"
+    }
+
+    FinancialRecord {
+        string id PK "cuid()"
+        string placementId FK "NOT NULL"
+        string month "Format YYYY-MM"
+        decimal tjmVente "TJM facturé au client"
+        decimal tjmAchat "TJM payé au freelance — nullable"
+        decimal salaireBrutMensuel "Salaire si CDI — nullable"
+        decimal chargesPatronalesPct "ex: 0.45 pour 45%"
+        decimal fraisGestionPct "ex: 0.05 pour 5%"
+        int joursOuvres "Jours ouvrés du mois"
+        int joursTravailles "Jours effectivement travaillés"
+        decimal caMensuel "COMPUTED: tjmVente x joursTravailles"
+        decimal coutMensuel "COMPUTED: selon type contrat"
+        decimal margeBrute "COMPUTED: CA - Coût"
+        decimal margeNette "COMPUTED: margeBrute - fraisGestion"
+        decimal tauxMarge "COMPUTED: margeNette / CA x 100"
+        datetime createdAt "default now()"
+    }
+
+    AuditLog {
+        string id PK "cuid()"
+        string userId FK "nullable — system actions"
+        string organizationId FK "NOT NULL"
+        string action "CREATE | UPDATE | DELETE | LOGIN | EXPORT"
+        string entityType "Candidate | Mission | Placement..."
+        string entityId "nullable"
+        json previousData "nullable"
+        json newData "nullable"
+        string ipAddress "nullable"
+        datetime createdAt "default now()"
+    }
+```

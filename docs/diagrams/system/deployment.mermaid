@@ -1,0 +1,49 @@
+```mermaid
+graph TB
+    subgraph "DNS - Cloudflare"
+        DNS["*.staffingai.fr → Vercel<br/>Wildcard CNAME"]
+    end
+
+    subgraph "Vercel - Edge Network"
+        MW["Middleware Next.js<br/>Résolution Tenant par sous-domaine"]
+        
+        subgraph "Routes Applicatives"
+            MARKETING["/ — Site Marketing<br/>Landing, Pricing, Signup<br/>staffingai.fr"]
+            TENANT["/tenant/* — App ESN<br/>Dashboard, Candidats, Missions, Finance<br/>{slug}.staffingai.fr"]
+            ADMIN["/admin/* — Super Admin<br/>Tenants, Billing, Monitoring<br/>admin.staffingai.fr"]
+            APIR["/api/* — API Routes<br/>REST Endpoints<br/>Protégées par Auth + Tenant Scope"]
+        end
+
+        subgraph "Serverless Functions"
+            CRON["Cron Jobs Vercel<br/>- Alertes fin de mission<br/>- Relances trial<br/>- Calcul KPIs mensuels"]
+        end
+    end
+
+    subgraph "Data Layer"
+        SUPA["Supabase<br/>PostgreSQL + Row Level Security<br/>Pooling via PgBouncer"]
+        REDIS["Upstash Redis<br/>Cache résolution tenant (TTL 5min)<br/>Rate limiting API IA<br/>Sessions"]
+        R2["Cloudflare R2<br/>CVs PDF/DOCX<br/>Logos tenants<br/>Documents exports"]
+    end
+
+    subgraph "Services Tiers"
+        CLAUDE["Anthropic Claude API<br/>- Parsing CV structuré<br/>- Matching sémantique<br/>- Scoring candidats"]
+        STRIPE2["Stripe<br/>- Checkout Sessions<br/>- Subscriptions<br/>- Webhooks (paiement, churn)"]
+        RESEND["Resend<br/>- Email bienvenue<br/>- Alertes fin de mission<br/>- Relances impayés"]
+        CLERK["Clerk<br/>- Auth multi-tenant<br/>- SSO / Social login<br/>- 2FA Super Admin"]
+    end
+
+    DNS --> MW
+    MW --> MARKETING
+    MW --> TENANT
+    MW --> ADMIN
+    MW --> APIR
+    APIR --> CRON
+
+    APIR --> SUPA
+    APIR --> REDIS
+    APIR --> R2
+    APIR --> CLAUDE
+    APIR --> STRIPE2
+    APIR --> RESEND
+    APIR --> CLERK
+```

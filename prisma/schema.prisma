@@ -1,0 +1,521 @@
+// ============================================================
+// StaffingAI — Prisma Schema
+// Multi-Tenant SaaS de Staffing IT avec IA
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Plan {
+  TRIAL
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+enum OrgStatus {
+  ACTIVE
+  SUSPENDED
+  CHURNED
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  RECRUITER
+  MANAGER
+  VIEWER
+}
+
+enum MissionStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  FILLED
+  CLOSED
+  CANCELLED
+}
+
+enum PipelineStage {
+  NEW
+  PRESELECTED
+  INTERNAL_INTERVIEW
+  PROPOSED_TO_CLIENT
+  CLIENT_INTERVIEW
+  VALIDATED
+  ON_MISSION
+  REJECTED
+  CANCELLED
+}
+
+enum SkillLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum SkillCategory {
+  LANGUAGE
+  FRAMEWORK
+  DATABASE
+  CLOUD
+  DEVOPS
+  METHODOLOGY
+  SOFT_SKILL
+  OTHER
+}
+
+enum Recommendation {
+  STRONG_MATCH
+  GOOD_MATCH
+  PARTIAL_MATCH
+  WEAK_MATCH
+}
+
+enum ContractType {
+  CDI
+  CDD
+  FREELANCE
+  PORTAGE
+}
+
+enum RemotePolicy {
+  ON_SITE
+  HYBRID
+  FULL_REMOTE
+}
+
+enum Availability {
+  IMMEDIATE
+  ONE_MONTH
+  TWO_MONTHS
+  THREE_MONTHS_PLUS
+  NOT_AVAILABLE
+}
+
+enum Seniority {
+  JUNIOR
+  MID
+  SENIOR
+  LEAD
+  ARCHITECT
+}
+
+enum PlacementStatus {
+  ACTIVE
+  COMPLETED
+  EARLY_TERMINATION
+  RENEWED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  EXPORT
+  IMPERSONATE
+}
+
+// ─────────────────────────────────────────────
+// ORGANIZATION (Tenant)
+// ─────────────────────────────────────────────
+
+model Organization {
+  id                     String    @id @default(cuid())
+  name                   String
+  slug                   String    @unique
+  logo                   String?
+  plan                   Plan      @default(TRIAL)
+  status                 OrgStatus @default(ACTIVE)
+  trialEndsAt            DateTime?
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  settings               Json      @default("{}")
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  // Relations
+  users       User[]
+  candidates  Candidate[]
+  clients     Client[]
+  missions    Mission[]
+  placements  Placement[]
+  applications Application[]
+  auditLogs   AuditLog[]
+
+  @@map("organizations")
+}
+
+// ─────────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  clerkId        String    @unique
+  email          String    @unique
+  firstName      String
+  lastName       String
+  avatar         String?
+  role           UserRole  @default(RECRUITER)
+  lastLoginAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdCandidates Candidate[] @relation("CreatedBy")
+  createdMissions   Mission[]   @relation("CreatedBy")
+  assignedApplications Application[] @relation("AssignedTo")
+  auditLogs         AuditLog[]
+
+  @@index([organizationId])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// CANDIDATE
+// ─────────────────────────────────────────────
+
+model Candidate {
+  id                   String        @id @default(cuid())
+  firstName            String
+  lastName             String
+  email                String
+  phone                String?
+  location             String?
+  cvFileUrl            String?
+  cvFileName           String?
+  cvParsedData         Json?
+  availability         Availability  @default(NOT_AVAILABLE)
+  availableFrom        DateTime?
+  desiredSalaryAnnual  Decimal?      @db.Decimal(10, 2)
+  desiredTJM           Decimal?      @db.Decimal(10, 2)
+  preferredContract    ContractType?
+  preferredRemote      RemotePolicy?
+  seniorityEstimate    Seniority?
+  linkedinUrl          String?
+  source               String?
+  notes                String?       @db.Text
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdById String?
+  createdBy   User?   @relation("CreatedBy", fields: [createdById], references: [id])
+
+  skills       Skill[]
+  experiences  Experience[]
+  applications Application[]
+  matchScores  MatchScore[]
+  placements   Placement[]
+
+  @@unique([email, organizationId])
+  @@index([organizationId])
+  @@index([organizationId, availability])
+  @@map("candidates")
+}
+
+// ─────────────────────────────────────────────
+// SKILL
+// ─────────────────────────────────────────────
+
+model Skill {
+  id               String        @id @default(cuid())
+  name             String
+  normalizedName   String
+  category         SkillCategory @default(OTHER)
+  level            SkillLevel    @default(INTERMEDIATE)
+  yearsOfExperience Int?
+  isVerified       Boolean       @default(false)
+
+  // Relations
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@index([normalizedName])
+  @@map("skills")
+}
+
+// ─────────────────────────────────────────────
+// EXPERIENCE
+// ─────────────────────────────────────────────
+
+model Experience {
+  id           String    @id @default(cuid())
+  companyName  String
+  jobTitle     String
+  description  String?   @db.Text
+  startDate    DateTime
+  endDate      DateTime?
+  isCurrent    Boolean   @default(false)
+  technologies String[]
+
+  // Relations
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId])
+  @@map("experiences")
+}
+
+// ─────────────────────────────────────────────
+// CLIENT
+// ─────────────────────────────────────────────
+
+model Client {
+  id           String   @id @default(cuid())
+  companyName  String
+  sector       String?
+  contactName  String
+  contactEmail String
+  contactPhone String?
+  address      String?
+  notes        String?  @db.Text
+  defaultTJM   Decimal? @db.Decimal(10, 2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  missions   Mission[]
+  placements Placement[]
+
+  @@index([organizationId])
+  @@map("clients")
+}
+
+// ─────────────────────────────────────────────
+// MISSION
+// ─────────────────────────────────────────────
+
+model Mission {
+  id                     String        @id @default(cuid())
+  title                  String
+  description            String        @db.Text
+  tjmClient              Decimal?      @db.Decimal(10, 2)
+  tjmBudgetMax           Decimal?      @db.Decimal(10, 2)
+  status                 MissionStatus @default(DRAFT)
+  startDate              DateTime?
+  estimatedEndDate       DateTime?
+  estimatedDurationMonths Int?
+  location               String?
+  remotePolicy           RemotePolicy  @default(ON_SITE)
+  requiredSeniority      Seniority?
+  positionsCount         Int           @default(1)
+  positionsFilled        Int           @default(0)
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime      @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  createdById String?
+  createdBy   User?   @relation("CreatedBy", fields: [createdById], references: [id])
+
+  requiredSkills RequiredSkill[]
+  matchScores    MatchScore[]
+  applications   Application[]
+  placements     Placement[]
+
+  @@index([organizationId, status])
+  @@index([clientId])
+  @@map("missions")
+}
+
+// ─────────────────────────────────────────────
+// REQUIRED SKILL (pour une mission)
+// ─────────────────────────────────────────────
+
+model RequiredSkill {
+  id             String     @id @default(cuid())
+  skillName      String
+  normalizedName String
+  minimumLevel   SkillLevel @default(INTERMEDIATE)
+  isMandatory    Boolean    @default(true)
+  weight         Int        @default(5) // 1-10
+
+  // Relations
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@index([missionId])
+  @@map("required_skills")
+}
+
+// ─────────────────────────────────────────────
+// MATCH SCORE
+// ─────────────────────────────────────────────
+
+model MatchScore {
+  id                String         @id @default(cuid())
+  globalScore       Int
+  technicalScore    Int
+  seniorityScore    Int
+  locationScore     Int
+  availabilityScore Int
+  skillMatchDetail  Json
+  strengths         Json           // String[]
+  gaps              Json           // String[]
+  recommendation    Recommendation
+  aiExplanation     String?        @db.Text
+  computedAt        DateTime       @default(now())
+
+  // Relations
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, missionId])
+  @@index([missionId, globalScore(sort: Desc)])
+  @@map("match_scores")
+}
+
+// ─────────────────────────────────────────────
+// APPLICATION (Candidature dans le pipeline)
+// ─────────────────────────────────────────────
+
+model Application {
+  id              String        @id @default(cuid())
+  stage           PipelineStage @default(NEW)
+  notes           String?       @db.Text
+  rejectionReason String?
+  interviewDate   DateTime?
+  appliedAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  assignedToId String?
+  assignedTo   User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  @@unique([candidateId, missionId])
+  @@index([organizationId, stage])
+  @@index([missionId])
+  @@map("applications")
+}
+
+// ─────────────────────────────────────────────
+// PLACEMENT
+// ─────────────────────────────────────────────
+
+model Placement {
+  id            String          @id @default(cuid())
+  startDate     DateTime
+  endDate       DateTime?
+  actualEndDate DateTime?
+  contractType  ContractType
+  status        PlacementStatus @default(ACTIVE)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id])
+
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id])
+
+  financialRecords FinancialRecord[]
+
+  @@index([organizationId, status])
+  @@index([candidateId])
+  @@map("placements")
+}
+
+// ─────────────────────────────────────────────
+// FINANCIAL RECORD
+// ─────────────────────────────────────────────
+
+model FinancialRecord {
+  id                   String   @id @default(cuid())
+  month                String   // Format: "2025-03"
+  tjmVente             Decimal  @db.Decimal(10, 2)
+  tjmAchat             Decimal? @db.Decimal(10, 2) // Si freelance
+  salaireBrutMensuel   Decimal? @db.Decimal(10, 2) // Si CDI
+  chargesPatronalesPct Decimal  @default(0.45) @db.Decimal(5, 4)
+  fraisGestionPct      Decimal  @default(0.05) @db.Decimal(5, 4)
+  joursOuvres          Int
+  joursTravailles      Int
+  caMensuel            Decimal  @db.Decimal(12, 2)
+  coutMensuel          Decimal  @db.Decimal(12, 2)
+  margeBrute           Decimal  @db.Decimal(12, 2)
+  margeNette           Decimal  @db.Decimal(12, 2)
+  tauxMarge            Decimal  @db.Decimal(5, 2) // Pourcentage
+  createdAt            DateTime @default(now())
+
+  // Relations
+  placementId String
+  placement   Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
+  @@unique([placementId, month])
+  @@index([placementId])
+  @@map("financial_records")
+}
+
+// ─────────────────────────────────────────────
+// AUDIT LOG
+// ─────────────────────────────────────────────
+
+model AuditLog {
+  id             String      @id @default(cuid())
+  action         AuditAction
+  entityType     String
+  entityId       String?
+  previousData   Json?
+  newData        Json?
+  ipAddress      String?
+  createdAt      DateTime    @default(now())
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
+
+  @@index([organizationId, createdAt(sort: Desc)])
+  @@index([entityType, entityId])
+  @@map("audit_logs")
+}

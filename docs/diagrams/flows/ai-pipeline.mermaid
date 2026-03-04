@@ -1,0 +1,70 @@
+```mermaid
+graph TB
+    subgraph "📄 Entrées"
+        CV["CV PDF / DOCX<br/>Upload par recruteur<br/>ou candidat"]
+        MISSION["Fiche Mission<br/>Description + Skills requis<br/>+ TJM + Contraintes"]
+        PROFILE["Profil Candidat<br/>Données structurées<br/>en base"]
+    end
+
+    subgraph "🔄 Pipeline IA — Étape 1 : Parsing CV"
+        EXTRACT["Extraction Texte<br/>pdf-parse / mammoth<br/>Texte brut du CV"]
+        PARSE["Claude API — CV Parser<br/>Prompt : Expert RH IT<br/>Extraction structurée JSON"]
+        VALIDATE["Validation & Nettoyage<br/>Vérification des champs<br/>Typage + valeurs par défaut"]
+    end
+
+    subgraph "📚 Taxonomie de Compétences"
+        TAX_DB[("Base de Compétences<br/>────────────────<br/>Langages : Java, Python, JS, Go...<br/>Frameworks : Spring, React, Angular...<br/>Cloud : AWS, Azure, GCP...<br/>DevOps : Docker, K8s, Terraform...<br/>DB : PostgreSQL, MongoDB, Redis...<br/>Méthodologies : Agile, Scrum...<br/>Soft skills : Leadership, Communication...")]
+        ALIASES["Table d'Alias<br/>────────────────<br/>ReactJS → React<br/>Node → Node.js<br/>K8s → Kubernetes<br/>Postgres → PostgreSQL<br/>AWS Lambda → Lambda<br/>..."]
+    end
+
+    subgraph "🔄 Pipeline IA — Étape 2 : Normalisation"
+        NORM["Normalisation des Skills<br/>Mapping vers taxonomie interne<br/>Résolution des alias<br/>Standardisation des niveaux"]
+    end
+
+    subgraph "🔄 Pipeline IA — Étape 3 : Matching"
+        PREFILTER["Pré-filtre rapide<br/>(SQL)<br/>Disponibilité, Localisation,<br/>Au moins 1 skill en commun"]
+        MATCH["Claude API — Matching Engine<br/>Prompt : Expert Staffing IT<br/>Scoring sémantique multi-critères"]
+        SCORE["Calcul Score Global<br/>Technique × 0.4<br/>Séniorité × 0.2<br/>Localisation × 0.15<br/>Disponibilité × 0.15<br/>TJM/Marge × 0.1"]
+    end
+
+    subgraph "🔄 Pipeline IA — Étape 4 : Ranking"
+        RANK["Tri & Classement<br/>Score DESC<br/>Filtres configurables<br/>Score minimum paramétrable"]
+        EXPLAIN["Génération Explications<br/>Points forts identifiés<br/>Lacunes détectées<br/>Recommandation claire"]
+    end
+
+    subgraph "📊 Sorties"
+        STRUCTURED["Profil Structuré<br/>Identité + Skills typés<br/>+ Niveaux + Années XP"]
+        SCORES["Match Scores<br/>Score global 0-100<br/>Scores par critère<br/>Classement"]
+        EXPLANATIONS["Explications IA<br/>Forces du candidat<br/>Lacunes identifiées<br/>Recommandation textuelle"]
+        ALERTS["Alertes Smart<br/>Perfect match détecté<br/>Nouveau candidat pour mission urgente<br/>Compétence rare disponible"]
+    end
+
+    CV --> EXTRACT
+    EXTRACT --> PARSE
+    PARSE --> VALIDATE
+    VALIDATE --> NORM
+    
+    TAX_DB --> NORM
+    ALIASES --> NORM
+    
+    NORM --> STRUCTURED
+    NORM --> PREFILTER
+
+    PROFILE --> PREFILTER
+    MISSION --> PREFILTER
+    
+    PREFILTER --> MATCH
+    TAX_DB --> MATCH
+    
+    MATCH --> SCORE
+    SCORE --> RANK
+    RANK --> SCORES
+    RANK --> EXPLAIN
+    EXPLAIN --> EXPLANATIONS
+    SCORES --> ALERTS
+
+    style PARSE fill:#6366f1,color:#fff
+    style MATCH fill:#6366f1,color:#fff
+    style TAX_DB fill:#f59e0b,color:#000
+    style ALIASES fill:#f59e0b,color:#000
+```
