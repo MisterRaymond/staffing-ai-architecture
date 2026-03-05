@@ -126,6 +126,34 @@ classDiagram
         BOTH
     }
 
+    class BillingType {
+        <<enumeration>>
+        REGIE
+        FORFAIT
+        SOUS_TRAITANCE
+    }
+
+    class CostFrequency {
+        <<enumeration>>
+        DAILY
+        MONTHLY
+        ANNUAL
+        ONE_TIME
+    }
+
+    class CostCategory {
+        <<enumeration>>
+        SALARY
+        EMPLOYER_CHARGES
+        BENEFITS
+        EQUIPMENT
+        TRAINING
+        RECRUITMENT
+        SUBCONTRACTING
+        MANAGEMENT_FEE
+        OTHER
+    }
+
     class SkillLevel {
         <<enumeration>>
         BEGINNER

@@ -2,56 +2,73 @@
 
 ```mermaid
 sequenceDiagram
-    actor M as Manager ESN
+    actor DM as Delivery Manager / Resp. Recrutement
     participant APP as Frontend
     participant API as API Routes
     participant DB as PostgreSQL
 
-    Note over M,DB: ═══ DASHBOARD FINANCIER CONSOLIDÉ ═══
+    Note over DM,DB: ═══ CONFIG TAUX (une seule fois par l'Admin) ═══
 
-    M->>APP: Ouvrir module Finance
-    APP->>API: GET /api/finance/dashboard?period=2025-03
+    DM->>APP: Admin > Paramètres > Taux employeur
+    APP->>API: POST /api/finance/rates
+    Note over API: Créer OrganizationRates :<br/>- "Taux France" : charges 45%, mutuelle 80€...<br/>- "Taux Maroc" : charges 26.6%...
+    API->>DB: INSERT OrganizationRates
+    
+    Note over DM,DB: ═══ CRÉATION PLACEMENT + CONFIG FINANCIÈRE ═══
 
-    API->>DB: SELECT placements + financialRecords<br/>WHERE organizationId = :tenantId<br/>AND status = 'ACTIVE'
-    DB-->>API: Données brutes des placements actifs
+    DM->>APP: Placement validé → Configurer les finances
+    APP->>APP: Choix du type de facturation
 
-    Note over API: Calculs côté serveur :<br/><br/>Par placement :<br/>  CA = tjmVente × joursTravaillés<br/>  Coût CDI = salaireBrut × (1 + chargesPct)<br/>  Coût Freelance = tjmAchat × joursTravaillés<br/>  Marge Brute = CA - Coût<br/>  Frais Gestion = CA × fraisGestionPct<br/>  Marge Nette = MargeBrute - FraisGestion<br/>  Taux Marge = MargeNette / CA × 100<br/><br/>Consolidé :<br/>  CA Total = Σ CA par placement<br/>  Marge Totale = Σ marges<br/>  Taux Marge Moyen = MargeTotale / CA Total<br/>  Intercontrat = consultants sans mission / total<br/>  Coût Intercontrat = Σ salaires sans mission
+    alt Régie
+        DM->>APP: TJM client : 550€/j
+    else Forfait
+        DM->>APP: Prix total : 120 000€<br/>Durée estimée : 240 jours
+    else Sous-traitance
+        DM->>APP: TJM client final : 550€/j<br/>TJM interne : 350€/j<br/>Intermédiaire : "Filiale Maroc"
+    end
 
-    API-->>APP: Dashboard JSON consolidé
-    APP-->>M: Affichage : KPIs + Graphiques + Alertes
+    APP->>API: POST /api/placements/:id/finance
+    API->>DB: INSERT PlacementFinance
 
-    Note over M,DB: ═══ DÉTAIL D'UN PLACEMENT ═══
+    Note over DM,DB: ═══ SAISIE DES LIGNES DE COÛTS ═══
 
-    M->>APP: Clic sur placement "Jean Dupont @ BNP"
-    APP->>API: GET /api/finance/placement/:id
+    DM->>APP: Ajouter les coûts du consultant
 
-    API->>DB: SELECT financialRecords<br/>WHERE placementId = :id<br/>ORDER BY month ASC
-    DB-->>API: Historique mensuel (12 derniers mois)
+    API->>DB: Charger les taux par défaut (OrganizationRates)
+    DB-->>API: Taux France : charges 45%, mutuelle 80€...
+    API-->>APP: Formulaire pré-rempli avec les taux
 
-    API->>API: Calculer tendances et projections<br/>- Évolution de la marge mois par mois<br/>- CA cumulé<br/>- Projection fin de mission<br/>- Jours restants avant fin de contrat
+    DM->>APP: Valider / ajuster les lignes de coûts
+    APP->>API: POST /api/placements/:id/finance/costs
 
-    API-->>APP: Détail financier + historique + projections
-    APP-->>M: Courbe de marge, tableau mensuel,<br/>alerte si fin de mission < 30j
+    Note over API: Lignes de coûts :<br/>- Salaire brut : 3 500€/mois → 194.44€/j<br/>- Charges 45% : 1 575€/mois → 87.50€/j<br/>- Mutuelle : 80€/mois → 4.44€/j<br/>- Tickets resto : 180€/mois → 10€/j<br/>- PC portable : 1 800€/an → 8.26€/j
 
-    Note over M,DB: ═══ SIMULATION (WHAT-IF) ═══
+    API->>DB: INSERT CostLine[] (avec dailyAmount calculé)
 
-    M->>APP: "Si le TJM passe à 650€ ?"
-    APP->>API: POST /api/finance/simulate<br/>{ placementId, newTjmVente: 650 }
+    Note over API: Calcul automatique :<br/>dailyCost = Σ dailyAmount de toutes les CostLines<br/>dailyRevenue = clientTjm (ou forfaitDailyRate)<br/>dailyMargin = dailyRevenue - dailyCost<br/>marginRate = (dailyMargin / dailyRevenue) × 100
 
-    API->>DB: GET current placement data
-    DB-->>API: Données actuelles
+    API->>DB: UPDATE PlacementFinance SET<br/>dailyCost, dailyRevenue, dailyMargin, marginRate
 
-    Note over API: Recalcul avec nouveau TJM :<br/>  Nouveau CA = 650 × jours<br/>  Nouvelle marge = Nouveau CA - Coût<br/>  Nouveau taux marge<br/>  Delta vs actuel<br/>  Impact annualisé
+    API-->>APP: Configuration financière complète
+    APP-->>DM: Fiche financière du placement
 
-    API-->>APP: Comparaison Avant / Après
-    APP-->>M: Tableau comparatif :<br/>  Marge actuelle vs projetée<br/>  Impact sur CA annuel<br/>  Recommandation (acceptable / insuffisant)
+    Note over DM,DB: ═══ DASHBOARD ═══
 
-    Note over M,DB: ═══ ALERTES AUTOMATIQUES ═══
+    DM->>APP: Ouvrir module Finance
+    APP->>API: GET /api/finance/dashboard
 
-    Note over API: Cron Job quotidien :<br/>  1. Missions qui se terminent dans < 30 jours<br/>  2. Taux de marge < seuil configuré<br/>  3. Consultants en intercontrat > X jours<br/>  4. Factures client en retard
+    API->>DB: SELECT placements + financialConfig + costLines<br/>GROUP BY staffingTeamId, clientId
 
-    API->>DB: Requêtes d'alertes
-    DB-->>API: Éléments déclencheurs
-    API->>APP: Notifications in-app
-    API->>M: Email récapitulatif hebdomadaire
+    Note over API: Agrégation :<br/>Par placement : marge, taux<br/>Par pôle : moyenne des marges<br/>Par client : moyenne des marges<br/>Global : intercontrat, marge globale
+
+    API-->>APP: Dashboard consolidé
+    APP-->>DM: Vues : par placement, par pôle, par client, global
+
+    Note over DM,DB: ═══ AJUSTEMENT PONCTUEL ═══
+
+    DM->>APP: Renégociation TJM : 550€ → 600€
+    APP->>API: PUT /api/placements/:id/finance<br/>{clientTjm: 600}
+    API->>DB: UPDATE PlacementFinance
+    API->>API: Recalculer dailyMargin et marginRate
+    API-->>APP: Marges mises à jour
 ```

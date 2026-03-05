@@ -234,21 +234,41 @@ Quand une activité de type `TECHNICAL_EVALUATION` est complétée, l'Expert rem
 
 ## Finance
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/finance/dashboard` | Dashboard consolidé | Manager+ |
-| GET | `/api/finance/placement/:id` | Rentabilité d'un placement | Manager+ |
-| POST | `/api/finance/simulate` | Simulation what-if | Manager+ |
-| GET | `/api/finance/intercontract` | Consultants en intercontrat | Manager+ |
-| GET | `/api/finance/export` | Export CSV/Excel | Manager+ |
-| POST | `/api/finance/records` | Saisir un record financier mensuel | Admin |
+| GET | `/api/finance/dashboard` | Dashboard consolidé (par pôle, client, global) | `finance:read` |
+| GET | `/api/finance/dashboard/by-team` | Rentabilité par pôle | `finance:read` |
+| GET | `/api/finance/dashboard/by-client` | Rentabilité par client | `finance:read` |
+| GET | `/api/finance/intercontract` | Consultants en intercontrat | `finance:read` |
+| GET | `/api/finance/export` | Export CSV/Excel | `finance:export` |
 
-### Paramètres dashboard
-```
-?period=2025-03              Mois spécifique
-&period=2025-Q1              Trimestre
-&period=2025                 Année complète
-```
+### Taux de l'organisation
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/finance/rates` | Liste des jeux de taux (France, Maroc...) | `finance:manage` |
+| POST | `/api/finance/rates` | Créer un jeu de taux | `finance:manage` |
+| PUT | `/api/finance/rates/:id` | Modifier un jeu de taux | `finance:manage` |
+| DELETE | `/api/finance/rates/:id` | Supprimer un jeu de taux | `finance:manage` |
+
+### Configuration financière d'un placement
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/placements/:id/finance` | Fiche financière du placement | `finance:read` |
+| POST | `/api/placements/:id/finance` | Créer la config financière (type + TJM) | `finance:manage` |
+| PUT | `/api/placements/:id/finance` | Modifier (renégociation TJM, changement type) | `finance:manage` |
+| POST | `/api/placements/:id/finance/simulate` | Simulation what-if ("si TJM passe à 650€ ?") | `finance:simulate` |
+
+### Lignes de coûts d'un placement
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/placements/:id/finance/costs` | Liste des lignes de coûts | `finance:read` |
+| POST | `/api/placements/:id/finance/costs` | Ajouter une ligne de coût | `finance:manage` |
+| PUT | `/api/placements/:id/finance/costs/:costId` | Modifier une ligne | `finance:manage` |
+| DELETE | `/api/placements/:id/finance/costs/:costId` | Supprimer une ligne | `finance:manage` |
+| POST | `/api/placements/:id/finance/costs/prefill` | Pré-remplir depuis les taux orga | `finance:manage` |
 
 ## Matching IA
 

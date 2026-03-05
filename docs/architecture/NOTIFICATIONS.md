@@ -84,8 +84,9 @@ Le système de notifications est **multi-canal** (in-app + email), **configurabl
 
 | Type d'événement | Déclencheur | Destinataires | Template titre |
 |---|---|---|---|
-| `finance_margin_low` | Marge d'un placement < seuil configuré | Manager + Admin | "⚠️ Marge faible : {{candidateName}} chez {{clientName}} — {{marginRate}}%" |
+| `finance_margin_low` | Taux de marge d'un placement < seuil configuré | Delivery Manager + Admin | "⚠️ Marge faible : {{candidateName}} chez {{clientName}} — {{marginRate}}%" |
 | `finance_intercontract_alert` | Consultant en intercontrat > X jours | Manager + Admin | "Intercontrat : {{candidateName}} sans mission depuis {{days}}j" |
+| `finance_placement_configured` | Config financière d'un placement complétée | Delivery Manager du client | "Finance configurée : {{candidateName}} — marge {{marginRate}}%" |
 
 ### Administration
 

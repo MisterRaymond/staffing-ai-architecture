@@ -50,7 +50,7 @@ Aucun serveur à gérer :
 | **Upload Fiche de Poste** | Upload appel d'offre client, parsing IA, extraction critères | P0 |
 | **Matching IA** | Scoring basé sur fiche de poste ↔ CV + historique vivier, ranking | P0 |
 | **Pipeline Recrutement** | Kanban, suivi des étapes, catégorisation des rejets | P1 |
-| **Module Financier** | Rentabilité, marges, simulations | P0 |
+| **Module Financier** | Daily cost (lignes libres), 3 types de facturation (régie/forfait/sous-traitance), taux configurables par pays, dashboards par pôle/client | P0 |
 | **Super Admin** | Gestion tenants, billing, monitoring | P1 |
 | **Intégrations Sourcing** | SmartRecruiters, LinkedIn Recruiter, Indeed, APEC — import CVs qualifiés | P2 |
 | **Espace Candidat** | Portail candidat, postulation, suivi | P2 |

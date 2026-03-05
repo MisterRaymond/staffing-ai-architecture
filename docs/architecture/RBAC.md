@@ -134,11 +134,12 @@ Exemple : le rôle "Recruteur" a la permission `candidates:read` avec scope `tea
 
 | Code | Nom | Description |
 |------|-----|-------------|
-| `finance:read` | Voir le module financier | Dashboard, marges, CA |
-| `finance:manage` | Gérer les finances | Saisir TJM, coûts, records |
+| `finance:read` | Voir le module financier | Dashboard par pôle, par client, marges |
+| `finance:manage` | Gérer les finances | Configurer PlacementFinance, CostLines, taux |
 | `finance:simulate` | Simuler des scénarios | What-if sur les TJM/marges |
 | `finance:export` | Exporter les données financières | Export CSV/Excel |
 | `finance:read_global` | Voir les finances globales | KPIs consolidés tous pôles |
+| `finance:manage_rates` | Gérer les taux employeur | Configurer OrganizationRates (charges, taxes...) |
 
 ### Module : Staffing Teams (`teams`)
 

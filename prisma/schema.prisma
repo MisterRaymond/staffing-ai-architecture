@@ -263,6 +263,7 @@ model Organization {
   applications   Application[]
   staffingTeams        StaffingTeam[]
   sourcingIntegrations SourcingIntegration[]
+  organizationRates    OrganizationRates[]
   notifications        Notification[]
   auditLogs            AuditLog[]
 
@@ -863,7 +864,8 @@ model Placement {
   clientId String
   client   Client @relation(fields: [clientId], references: [id])
 
-  financialRecords FinancialRecord[]
+  financialConfig PlacementFinance?
+  costLines       CostLine[]
 
   @@index([organizationId, status])
   @@index([candidateId])
@@ -871,33 +873,132 @@ model Placement {
 }
 
 // ─────────────────────────────────────────────
-// FINANCIAL RECORD
+// MODULE FINANCIER
+// ─────────────────────────────────────────────
+// Pas de pointage / CRA. Le coût est calculé en
+// daily rate à partir des lignes de coûts libres.
+// Trois modes de facturation : Régie, Forfait,
+// Sous-traitance en cascade.
 // ─────────────────────────────────────────────
 
-model FinancialRecord {
-  id                   String   @id @default(cuid())
-  month                String   // Format: "2025-03"
-  tjmVente             Decimal  @db.Decimal(10, 2)
-  tjmAchat             Decimal? @db.Decimal(10, 2) // Si freelance
-  salaireBrutMensuel   Decimal? @db.Decimal(10, 2) // Si CDI
-  chargesPatronalesPct Decimal  @default(0.45) @db.Decimal(5, 4)
-  fraisGestionPct      Decimal  @default(0.05) @db.Decimal(5, 4)
-  joursOuvres          Int
-  joursTravailles      Int
-  caMensuel            Decimal  @db.Decimal(12, 2)
-  coutMensuel          Decimal  @db.Decimal(12, 2)
-  margeBrute           Decimal  @db.Decimal(12, 2)
-  margeNette           Decimal  @db.Decimal(12, 2)
-  tauxMarge            Decimal  @db.Decimal(5, 2) // Pourcentage
-  createdAt            DateTime @default(now())
+// Taux par défaut de l'organisation (configurables par l'admin)
+// Utilisés comme valeurs pré-remplies à la création d'un placement CDI
+model OrganizationRates {
+  id                      String   @id @default(cuid())
+  name                    String                           // Ex: "Taux France", "Taux Maroc"
+  country                 String?                          // Pays associé (pour multi-filiales)
+  isDefault               Boolean  @default(false)         // Jeu de taux par défaut
+  // Charges employeur
+  chargesPatronalesPct    Decimal  @db.Decimal(5, 4)       // Ex: 0.4500 = 45%
+  mutuelleEmployeurMonth  Decimal? @db.Decimal(10, 2)      // Part employeur mutuelle / mois
+  prevoyancePct           Decimal? @db.Decimal(5, 4)       // Prévoyance %
+  taxeApprentissagePct    Decimal? @db.Decimal(5, 4)       // Taxe d'apprentissage %
+  formationProfPct        Decimal? @db.Decimal(5, 4)       // Formation professionnelle %
+  transportMonthly        Decimal? @db.Decimal(10, 2)      // Remboursement transport / mois
+  ticketsRestoMonthly     Decimal? @db.Decimal(10, 2)      // Part employeur tickets resto / mois
+  // Paramètres de calcul
+  workingDaysPerMonth     Int      @default(18)            // Jours ouvrés / mois (pour conversion)
+  workingDaysPerYear      Int      @default(218)           // Jours ouvrés / an
+  // Frais de gestion de l'ESN
+  fraisGestionPct         Decimal  @default(0.05) @db.Decimal(5, 4) // Frais de structure %
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@map("organization_rates")
+}
+
+// Configuration financière d'un placement
+model PlacementFinance {
+  id              String      @id @default(cuid())
+  billingType     BillingType                          // REGIE, FORFAIT, SOUS_TRAITANCE
+  currency        String      @default("EUR")
+
+  // ── Régie : TJM de vente ──
+  clientTjm       Decimal?    @db.Decimal(10, 2)       // TJM facturé au client final
+
+  // ── Sous-traitance / Offshore : TJM intermédiaire ──
+  internalTjm     Decimal?    @db.Decimal(10, 2)       // TJM interne (offshore → front) ou (ESN → intermédiaire)
+  intermediaryName String?                              // Nom de l'intermédiaire (ex: "Capgemini", "Filiale Maroc")
+
+  // ── Forfait : prix fixe ──
+  forfaitTotalPrice   Decimal? @db.Decimal(12, 2)      // Prix total du forfait
+  forfaitDurationDays Int?                              // Durée estimée en jours ouvrés
+  forfaitDailyRate    Decimal? @db.Decimal(10, 2)      // = forfaitTotalPrice / forfaitDurationDays (calculé)
+
+  // ── Calculs (mis à jour automatiquement) ──
+  dailyCost       Decimal?    @db.Decimal(10, 2)       // Coût journalier total (somme des CostLines en daily)
+  dailyRevenue    Decimal?    @db.Decimal(10, 2)       // Revenue journalier (clientTjm ou forfaitDailyRate)
+  dailyMargin     Decimal?    @db.Decimal(10, 2)       // dailyRevenue - dailyCost
+  marginRate      Decimal?    @db.Decimal(5, 2)        // (dailyMargin / dailyRevenue) × 100
+  // Sous-traitance : marges par maillon
+  offshoreMargin  Decimal?    @db.Decimal(10, 2)       // internalTjm - dailyCost (marge offshore)
+  frontMargin     Decimal?    @db.Decimal(10, 2)       // clientTjm - internalTjm (marge front)
+
+  // Taux utilisés pour ce placement (snapshot des taux orga au moment de la création)
+  ratesSnapshotId String?                               // Référence au jeu de taux utilisé
+  notes           String?     @db.Text
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
   // Relations
-  placementId String
+  placementId String    @unique
   placement   Placement @relation(fields: [placementId], references: [id], onDelete: Cascade)
 
-  @@unique([placementId, month])
+  @@map("placement_finances")
+}
+
+// Lignes de coûts libres associées à un placement
+model CostLine {
+  id          String        @id @default(cuid())
+  label       String                                   // Ex: "Salaire brut", "Charges patronales", "Mutuelle"
+  amount      Decimal       @db.Decimal(10, 2)         // Montant
+  frequency   CostFrequency                            // DAILY, MONTHLY, ANNUAL, ONE_TIME
+  // Conversion automatique en daily cost
+  dailyAmount Decimal?      @db.Decimal(10, 2)         // Montant ramené en coût journalier (calculé)
+  category    CostCategory  @default(OTHER)            // Pour regrouper dans le dashboard
+  isActive    Boolean       @default(true)             // Désactiver sans supprimer
+  notes       String?
+  sortOrder   Int           @default(0)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  placementId String
+  placement   Placement     @relation(fields: [placementId], references: [id], onDelete: Cascade)
+
   @@index([placementId])
-  @@map("financial_records")
+  @@map("cost_lines")
+}
+
+enum BillingType {
+  REGIE               // TJM × jours — facturation au temps passé
+  FORFAIT             // Prix fixe pour un livrable
+  SOUS_TRAITANCE      // Chaîne : client final → intermédiaire → ESN → consultant
+}
+
+enum CostFrequency {
+  DAILY               // Coût journalier (ex: TJM freelance)
+  MONTHLY             // Coût mensuel (ex: salaire, mutuelle, transport)
+  ANNUAL              // Coût annuel (ex: matériel, formation)
+  ONE_TIME            // Coût ponctuel (ex: prime d'embauche, frais de recrutement)
+}
+
+enum CostCategory {
+  SALARY              // Salaire brut
+  EMPLOYER_CHARGES    // Charges patronales, taxe apprentissage, formation pro
+  BENEFITS            // Mutuelle, prévoyance, tickets resto, transport
+  EQUIPMENT           // Matériel, licences logicielles
+  TRAINING            // Formations, certifications
+  RECRUITMENT         // Frais de recrutement, cooptation
+  SUBCONTRACTING      // TJM d'achat freelance ou sous-traitant
+  MANAGEMENT_FEE      // Frais de gestion / structure ESN
+  OTHER               // Autre
 }
 
 // ─────────────────────────────────────────────

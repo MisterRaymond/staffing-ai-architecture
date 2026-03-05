@@ -64,6 +64,7 @@ Voir les documents détaillés dans [`/docs/architecture/`](./docs/architecture/
 - [Architecture Globale](./docs/architecture/GLOBAL_ARCHITECTURE.md)
 - [Architecture Multi-Tenant](./docs/architecture/MULTI_TENANT.md)
 - [Architecture Module IA](./docs/architecture/AI_MODULE.md)
+- [Architecture Module Financier](./docs/architecture/FINANCIAL_MODULE.md)
 - [Architecture RBAC — Rôles & Permissions](./docs/architecture/RBAC.md)
 - [Architecture Notifications](./docs/architecture/NOTIFICATIONS.md)
 - [Architecture Intégrations Sourcing](./docs/architecture/SOURCING_INTEGRATIONS.md)
