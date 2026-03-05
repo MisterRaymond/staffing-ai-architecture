@@ -30,21 +30,68 @@ enum OrgStatus {
   CHURNED
 }
 
-enum UserRole {
-  SUPER_ADMIN       // Provider du SaaS
-  ADMIN             // Admin de l'ESN (tenant)
-  DELIVERY_MANAGER  // Chef de Projet Delivery — responsable client
-  RECRUITMENT_LEAD  // Responsable Recrutement — gère une équipe de recruteurs
-  RECRUITER         // Recruteur — gère le process candidat bout en bout
-  SOURCING_OFFICER  // Chargé de Recrutement — sourcing via outils externes
-  VIEWER            // Lecture seule
+// ─────────────────────────────────────────────
+// RBAC — Rôles & Permissions dynamiques
+// ─────────────────────────────────────────────
+// Les rôles ne sont PAS figés. Chaque Organisation
+// crée ses propres rôles et y affecte des permissions.
+// Des rôles par défaut sont créés à l'onboarding
+// mais l'admin peut les modifier librement.
+// ─────────────────────────────────────────────
+
+model Permission {
+  id          String @id @default(cuid())
+  code        String @unique                     // Ex: "candidates:create", "finance:view"
+  name        String                              // Ex: "Créer un candidat"
+  description String?                             // Description longue
+  module      String                              // Module : candidates, missions, finance, pipeline, teams, admin, integrations
+  action      String                              // Action : create, read, update, delete, export, manage, match
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@index([module])
+  @@map("permissions")
 }
 
-enum ManagementLevel {
-  VP                 // VP Staffing / Delivery — stratégie globale
-  DIRECTOR           // Directeur de pôle — supervise plusieurs équipes
-  DELIVERY_MANAGER   // Chef de Projet Delivery — responsable client(s)
-  TEAM_LEAD          // Responsable d'équipe recrutement
+model Role {
+  id            String   @id @default(cuid())
+  name          String                            // Ex: "Directeur Delivery", "Chargé de Recrutement"
+  description   String?
+  color         String?                           // Couleur UI pour badge
+  isSystem      Boolean  @default(false)          // true = rôle créé à l'onboarding, non supprimable
+  isDefault     Boolean  @default(false)          // Rôle assigné par défaut aux nouveaux users
+  hierarchy     Int      @default(0)              // Niveau hiérarchique (0 = le plus bas, 100 = admin)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  users           User[]
+  rolePermissions RolePermission[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("roles")
+}
+
+model RolePermission {
+  id String @id @default(cuid())
+
+  roleId String
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  permissionId String
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  // Scope : restreindre la permission à un périmètre de données
+  scope String @default("all")  // "own" = ses données, "team" = son pôle, "all" = tout le tenant
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@map("role_permissions")
 }
 
 enum PoolStatus {
@@ -186,8 +233,9 @@ model Organization {
   updatedAt              DateTime  @updatedAt
 
   // Relations
-  users          User[]
-  candidates     Candidate[]
+  users                User[]
+  roles                Role[]
+  candidates           Candidate[]
   clients        Client[]
   missions       Mission[]
   placements     Placement[]
@@ -204,21 +252,24 @@ model Organization {
 // ─────────────────────────────────────────────
 
 model User {
-  id                String            @id @default(cuid())
-  clerkId           String            @unique
-  email             String            @unique
+  id                String    @id @default(cuid())
+  clerkId           String    @unique
+  email             String    @unique
   firstName         String
   lastName          String
   avatar            String?
-  role              UserRole          @default(RECRUITER)
-  managementLevel   ManagementLevel?  // Null si pas manager/directeur
+  isSuperAdmin      Boolean   @default(false)  // Provider du SaaS uniquement
   lastLoginAt       DateTime?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   // Relations
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Rôle dynamique (RBAC)
+  roleId String
+  role   Role   @relation(fields: [roleId], references: [id])
 
   // Staffing Teams
   ledTeams             StaffingTeam[]   @relation("TeamLead")
@@ -230,6 +281,7 @@ model User {
   auditLogs         AuditLog[]
 
   @@index([organizationId])
+  @@index([roleId])
   @@map("users")
 }
 

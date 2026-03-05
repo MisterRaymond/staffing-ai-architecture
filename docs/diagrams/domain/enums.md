@@ -17,23 +17,27 @@ classDiagram
         CHURNED
     }
 
-    class UserRole {
+    class PermissionScope {
         <<enumeration>>
-        SUPER_ADMIN
-        ADMIN
-        DELIVERY_MANAGER
-        RECRUITMENT_LEAD
-        RECRUITER
-        SOURCING_OFFICER
-        VIEWER
+        own
+        team
+        all
     }
 
-    class ManagementLevel {
+    class PermissionModule {
         <<enumeration>>
-        VP
-        DIRECTOR
-        DELIVERY_MANAGER
-        TEAM_LEAD
+        candidates
+        pool
+        missions
+        job_descriptions
+        matching
+        pipeline
+        clients
+        finance
+        teams
+        placements
+        admin
+        integrations
     }
 
     class PoolStatus {

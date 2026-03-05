@@ -20,15 +20,44 @@ classDiagram
         +String email
         +String firstName
         +String lastName
-        +UserRole role
-        +ManagementLevel managementLevel
+        +Boolean isSuperAdmin
+        +String roleId
         +String organizationId
         +DateTime lastLoginAt
         --
-        +hasPermission(action) Boolean
-        +isDeliveryTrack() Boolean
-        +isRecruitmentTrack() Boolean
+        +hasPermission(code, scope, resource) Boolean
+        +getPermissions() Permission[]
         +getManagedTeams() StaffingTeam[]
+    }
+
+    class Permission {
+        +String id
+        +String code
+        +String name
+        +String description
+        +String module
+        +String action
+    }
+
+    class Role {
+        +String id
+        +String name
+        +String description
+        +String color
+        +Boolean isSystem
+        +Boolean isDefault
+        +Int hierarchy
+        +String organizationId
+        --
+        +getPermissions() Permission[]
+        +hasPermission(code) Boolean
+    }
+
+    class RolePermission {
+        +String id
+        +String roleId
+        +String permissionId
+        +String scope
     }
 
     class StaffingTeam {
@@ -241,7 +270,12 @@ classDiagram
         +Decimal tauxMarge
     }
 
+    Organization "1" --> "*" Role : définit les rôles
     Organization "1" --> "*" User : emploie
+    
+    Role "1" --> "*" User : assigné à
+    Role "1" --> "*" RolePermission : a les droits
+    Permission "1" --> "*" RolePermission : est affectée via
     Organization "1" --> "*" StaffingTeam : organise en pôles
     Organization "1" --> "*" Candidate : gère
     Organization "1" --> "*" Client : a comme client

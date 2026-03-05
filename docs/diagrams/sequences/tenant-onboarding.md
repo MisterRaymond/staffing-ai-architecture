@@ -30,7 +30,9 @@ sequenceDiagram
     API->>DB: BEGIN TRANSACTION
     API->>DB: INSERT Organization<br/>(name, slug, plan=TRIAL, trialEndsAt=+14j)
     DB-->>API: orgId
-    API->>DB: INSERT User<br/>(email, role=ADMIN, organizationId=orgId, clerkId)
+    API->>DB: INSERT default Roles<br/>(Administrateur, Directeur Delivery,<br/>Responsable Recrutement, Recruteur,<br/>Chargé de Recrutement, Consultation)
+    API->>DB: INSERT RolePermissions<br/>(permissions par défaut pour chaque rôle)
+    API->>DB: INSERT User<br/>(email, roleId=Administrateur, organizationId=orgId, clerkId)
     DB-->>API: userId
     API->>DB: COMMIT
 

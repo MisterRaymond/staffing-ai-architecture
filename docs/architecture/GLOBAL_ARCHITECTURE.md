@@ -42,7 +42,7 @@ Aucun serveur à gérer :
 
 | Module | Description | Priorité MVP |
 |--------|-------------|:---:|
-| **Auth & Multi-Tenant** | Inscription, login, résolution tenant, rôles (delivery + recrutement) | P0 |
+| **Auth & Multi-Tenant** | Inscription, login, résolution tenant, RBAC dynamique (rôles + permissions configurables) | P0 |
 | **Staffing Teams** | Pôles par techno ou par client, filière delivery + recrutement, affectation membres | P0 |
 | **Gestion Candidats** | CRUD, upload CV, parsing IA | P0 |
 | **Vivier / Talent Pool** | Réinjection des rejetés, tags, score chaleur, historique, recherche | P0 |

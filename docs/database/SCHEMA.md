@@ -6,17 +6,20 @@ Le schéma de données suit une architecture **multi-tenant à base partagée**.
 
 ## Entités principales
 
+### Permission
+Table **globale** (non liée à un tenant). Contient la liste de tous les droits disponibles dans le SaaS, organisés par module et action. Exemples : `candidates:create`, `finance:read`, `admin:roles`. Les tenants ne peuvent pas créer de permissions, seulement les affecter à leurs rôles. Ajoutée en seed à chaque déploiement.
+
+### Role
+Rôle **propre à chaque Organisation**. Nom libre (ex: "Directeur Delivery", "Chargé de Recrutement"). Chaque rôle a un niveau hiérarchique (`hierarchy` 0-100) utilisé pour empêcher un user de créer un rôle supérieur au sien. Le flag `isSystem` protège les rôles créés à l'onboarding contre la suppression. `isDefault` désigne le rôle assigné automatiquement aux nouveaux utilisateurs invités.
+
+### RolePermission
+Table de liaison entre Role et Permission. Le champ `scope` restreint le périmètre d'application : `own` (ses propres données), `team` (données de son/ses pôles), `all` (tout le tenant). Un rôle peut avoir la même permission avec des scopes différents pour des actions différentes.
+
 ### Organization (Tenant)
-L'entité racine. Représente une ESN cliente du SaaS. Chaque organization a un `slug` unique qui sert de sous-domaine.
+L'entité racine. Représente une ESN cliente du SaaS.
 
 ### User
-Les utilisateurs de l'application, liés à une Organization. Il y a **deux filières** :
-
-**Filière Delivery** (orientée client) : `DELIVERY_MANAGER` — Chef de Projet Delivery, responsable de la relation avec un ou plusieurs clients. Même autorité qu'un Directeur mais scopée à ses clients. Gère la qualité des prestations, les renouvellements, la négociation TJM.
-
-**Filière Recrutement** (orientée candidat) : `RECRUITMENT_LEAD` — Responsable Recrutement qui pilote un pôle. `RECRUITER` — Recruteur qui gère le process candidat de bout en bout. `SOURCING_OFFICER` — Chargé de Recrutement qui source les candidats via des outils externes (SmartRecruiters, LinkedIn Recruiter, Indeed...) et alimente le vivier.
-
-Le champ `managementLevel` (optionnel) définit le rang hiérarchique : VP → DIRECTOR → DELIVERY_MANAGER → TEAM_LEAD.
+Les utilisateurs de l'application. Chaque user a un **rôle dynamique** (référence vers la table Role). Le champ `isSuperAdmin` est réservé au provider du SaaS (pas visible côté tenant).
 
 ### StaffingTeam (Pôle / Équipe de recrutement)
 Unité organisationnelle qui regroupe des membres autour d'une spécialisation technique (Pôle Java, Pôle Data) ou d'un client dédié (Équipe BNP). Chaque pôle a un lead, des membres (recruteurs, chargés de recrutement), un vivier de candidats, et des missions. Un Chef de Projet Delivery peut être lead d'un pôle client.
@@ -90,6 +93,11 @@ CREATE INDEX idx_matchscores_mission_score ON match_scores(mission_id, global_sc
 CREATE INDEX idx_financial_placement_month ON financial_records(placement_id, month);
 CREATE INDEX idx_skills_candidate ON skills(candidate_id);
 CREATE INDEX idx_skills_normalized ON skills(normalized_name);
+-- RBAC
+CREATE INDEX idx_roles_org ON roles(organization_id);
+CREATE INDEX idx_role_permissions_role ON role_permissions(role_id);
+CREATE INDEX idx_permissions_module ON permissions(module);
+CREATE INDEX idx_users_role ON users(role_id);
 -- Staffing Teams & Talent Pool
 CREATE INDEX idx_staffing_teams_org ON staffing_teams(organization_id);
 CREATE INDEX idx_staffing_teams_client ON staffing_teams(client_id);

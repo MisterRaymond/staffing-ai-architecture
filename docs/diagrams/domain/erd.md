@@ -2,8 +2,13 @@
 
 ```mermaid
 erDiagram
+    Organization ||--o{ Role : "définit les rôles"
     Organization ||--o{ User : "emploie"
     Organization ||--o{ StaffingTeam : "organise en pôles"
+
+    Role ||--o{ User : "assigné à"
+    Role ||--o{ RolePermission : "a les droits"
+    Permission ||--o{ RolePermission : "affectée via"
     Organization ||--o{ Candidate : "gère"
     Organization ||--o{ Client : "a comme client"
     Organization ||--o{ Mission : "ouvre"
@@ -42,6 +47,34 @@ erDiagram
     User ||--o{ Application : "gère"
     User ||--o{ AuditLog : "déclenche"
 
+    Permission {
+        string id PK "cuid()"
+        string code UK "NOT NULL — Ex: candidates:create"
+        string name "NOT NULL — Ex: Créer un candidat"
+        string description "nullable"
+        string module "NOT NULL — Ex: candidates, finance, admin"
+        string action "NOT NULL — Ex: create, read, update, delete"
+    }
+
+    Role {
+        string id PK "cuid()"
+        string name "NOT NULL — Ex: Directeur Delivery"
+        string description "nullable"
+        string color "nullable — Couleur badge UI"
+        boolean isSystem "default false — true = non supprimable"
+        boolean isDefault "default false — rôle par défaut nouveaux users"
+        int hierarchy "0-100 — niveau hiérarchique"
+        string organizationId FK "NOT NULL"
+        datetime createdAt "default now()"
+    }
+
+    RolePermission {
+        string id PK "cuid()"
+        string roleId FK "NOT NULL"
+        string permissionId FK "NOT NULL"
+        string scope "own | team | all — périmètre de données"
+    }
+
     Organization {
         string id PK "cuid()"
         string name "NOT NULL"
@@ -64,8 +97,8 @@ erDiagram
         string firstName "NOT NULL"
         string lastName "NOT NULL"
         string avatar "URL nullable"
-        enum role "ADMIN | DELIVERY_MANAGER | RECRUITMENT_LEAD | RECRUITER | SOURCING_OFFICER | VIEWER"
-        enum managementLevel "nullable — VP | DIRECTOR | DELIVERY_MANAGER | TEAM_LEAD"
+        boolean isSuperAdmin "default false"
+        string roleId FK "NOT NULL — Rôle dynamique RBAC"
         string organizationId FK "NOT NULL"
         datetime lastLoginAt "nullable"
         datetime createdAt "default now()"

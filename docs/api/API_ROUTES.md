@@ -5,19 +5,46 @@
 - Base URL tenant : `https://{slug}.staffingai.fr/api`
 - Base URL admin : `https://admin.staffingai.fr/api/admin`
 - Authentification : Bearer token (Clerk)
+- Autorisation : **RBAC dynamique** — chaque route vérifie que le rôle de l'utilisateur possède la permission requise avec le bon scope
 - Réponses : JSON
 - Pagination : `?page=1&limit=20`
 - Filtres : query params (`?status=OPEN&search=react`)
 
 ## Authentification & Tenant
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| POST | `/api/auth/onboarding` | Inscription ESN + création tenant | Non |
-| POST | `/api/auth/invite` | Inviter un utilisateur au tenant | Admin |
-| GET | `/api/auth/me` | Profil utilisateur courant | Oui |
-| GET | `/api/org/settings` | Paramètres du tenant | Admin |
-| PUT | `/api/org/settings` | Modifier les paramètres | Admin |
+| POST | `/api/auth/onboarding` | Inscription ESN + création tenant | Public |
+| POST | `/api/auth/invite` | Inviter un utilisateur au tenant | `admin:users` |
+| GET | `/api/auth/me` | Profil utilisateur courant + permissions | Authentifié |
+| GET | `/api/org/settings` | Paramètres du tenant | `admin:settings` |
+| PUT | `/api/org/settings` | Modifier les paramètres | `admin:settings` |
+
+## Rôles & Permissions (RBAC)
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/roles` | Liste des rôles de l'organisation | `admin:roles` |
+| GET | `/api/roles/:id` | Détail d'un rôle + ses permissions | `admin:roles` |
+| POST | `/api/roles` | Créer un nouveau rôle | `admin:roles` |
+| PUT | `/api/roles/:id` | Modifier un rôle (nom, description) | `admin:roles` |
+| DELETE | `/api/roles/:id` | Supprimer un rôle (sauf system) | `admin:roles` |
+| GET | `/api/permissions` | Liste de toutes les permissions disponibles | `admin:permissions` |
+| PUT | `/api/roles/:id/permissions` | Affecter des permissions à un rôle | `admin:permissions` |
+| POST | `/api/roles/:id/duplicate` | Dupliquer un rôle existant | `admin:roles` |
+
+### Exemple de payload : affecter des permissions
+```json
+PUT /api/roles/:id/permissions
+{
+  "permissions": [
+    { "code": "candidates:create", "scope": "team" },
+    { "code": "candidates:read", "scope": "team" },
+    { "code": "missions:read", "scope": "all" },
+    { "code": "pipeline:manage", "scope": "own" }
+  ]
+}
+```
 
 ## Candidats
 

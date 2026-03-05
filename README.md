@@ -64,6 +64,8 @@ Voir les documents détaillés dans [`/docs/architecture/`](./docs/architecture/
 - [Architecture Globale](./docs/architecture/GLOBAL_ARCHITECTURE.md)
 - [Architecture Multi-Tenant](./docs/architecture/MULTI_TENANT.md)
 - [Architecture Module IA](./docs/architecture/AI_MODULE.md)
+- [Architecture RBAC — Rôles & Permissions](./docs/architecture/RBAC.md)
+- [Architecture Intégrations Sourcing](./docs/architecture/SOURCING_INTEGRATIONS.md)
 
 ---
 
@@ -100,6 +102,7 @@ Tous les diagrammes sont en **Mermaid** (rendus nativement par GitHub).
 | Pipeline IA | [`flows/ai-pipeline.md`](./docs/diagrams/flows/ai-pipeline.md) |
 | Résolution Multi-Tenant | [`flows/multi-tenant-resolution.md`](./docs/diagrams/flows/multi-tenant-resolution.md) |
 | Organisation des Staffing Teams | [`flows/staffing-teams.md`](./docs/diagrams/flows/staffing-teams.md) |
+| RBAC — Vérification Permissions | [`flows/rbac-permission-check.md`](./docs/diagrams/flows/rbac-permission-check.md) |
 
 ---
 
