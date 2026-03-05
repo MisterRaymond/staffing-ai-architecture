@@ -44,8 +44,10 @@ model Permission {
   code        String @unique                     // Ex: "candidates:create", "finance:view"
   name        String                              // Ex: "Créer un candidat"
   description String?                             // Description longue
-  module      String                              // Module : candidates, missions, finance, pipeline, teams, admin, integrations
-  action      String                              // Action : create, read, update, delete, export, manage, match
+  module      String                              // Module : candidates, missions, finance, pipeline, teams, admin, integrations, notifications, activities, evaluations, pool
+  action      String                              // Action : create, read, update, delete, export, manage, match, validate, etc.
+  // NOTE SEED: Les 65+ permissions sont insérées via prisma/seed.ts au déploiement.
+  // Les rôles par défaut (7) sont créés dans la fonction createDefaultRoles() lors de l'onboarding tenant.
 
   // Relations
   rolePermissions RolePermission[]
@@ -250,6 +252,8 @@ model Organization {
   stripeCustomerId       String?   @unique
   stripeSubscriptionId   String?   @unique
   settings               Json      @default("{}")
+  // ── Configuration financière ──
+  displayCurrency        String    @default("EUR")      // Devise d'affichage des dashboards financiers
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
@@ -264,6 +268,7 @@ model Organization {
   staffingTeams        StaffingTeam[]
   sourcingIntegrations SourcingIntegration[]
   organizationRates    OrganizationRates[]
+  exchangeRates        ExchangeRate[]
   notifications        Notification[]
   auditLogs            AuditLog[]
 
@@ -943,6 +948,42 @@ enum CostAmountType {
   FIXED                 // Montant fixe (ex: mutuelle 80€/mois)
   PERCENTAGE_OF_SALARY  // % du salaire brut (ex: charges 45%)
   ASK_USER              // L'utilisateur doit saisir le montant (ex: salaire brut)
+}
+
+// ─────────────────────────────────────────────
+// EXCHANGE RATES (Taux de change)
+// ─────────────────────────────────────────────
+
+model ExchangeRate {
+  id               String   @id @default(cuid())
+  fromCurrency     String                            // Ex: "MAD"
+  toCurrency       String                            // Ex: "EUR"
+  rate             Decimal  @db.Decimal(12, 6)       // Ex: 0.091743 (1 MAD = 0.091743 EUR)
+  isActive         Boolean  @default(true)
+  effectiveFrom    DateTime @default(now())          // Date d'entrée en vigueur
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, fromCurrency, toCurrency])
+  @@index([organizationId])
+  @@map("exchange_rates")
+}
+
+// ─────────────────────────────────────────────
+// SKILL ALIAS (Normalisation des compétences)
+// ─────────────────────────────────────────────
+
+model SkillAlias {
+  id              String @id @default(cuid())
+  alias           String                              // Ex: "ReactJS", "React.js", "React JS"
+  normalizedName  String                              // Ex: "React"
+  
+  @@unique([alias])
+  @@index([normalizedName])
+  @@map("skill_aliases")
 }
 
 // Configuration financière d'un placement

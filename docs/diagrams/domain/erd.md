@@ -42,7 +42,14 @@ erDiagram
     Mission ||--o{ Application : "reçoit"
     Mission ||--o{ Placement : "aboutit"
     
-    Placement ||--o{ FinancialRecord : "génère"
+    Placement ||--|| PlacementFinance : "config financière"
+    Placement ||--o{ CostLine : "lignes de coûts"
+    
+    Organization ||--o{ OrganizationRates : "taux par pays"
+    Organization ||--o{ ExchangeRate : "taux de change"
+    OrganizationRates ||--o{ CostLineTemplate : "presets de coûts"
+
+    Application ||--o{ ApplicationActivity : "activités"
 
     User ||--o{ Application : "gère"
     User ||--o{ AuditLog : "déclenche"
@@ -277,23 +284,91 @@ erDiagram
         datetime createdAt "default now()"
     }
 
-    FinancialRecord {
+    PlacementFinance {
         string id PK "cuid()"
+        enum billingType "REGIE | FORFAIT | SOUS_TRAITANCE"
+        string currency "default EUR"
+        decimal clientTjm "nullable — TJM client final"
+        decimal internalTjm "nullable — TJM interne offshore"
+        string intermediaryName "nullable — Ex: Filiale Maroc"
+        decimal forfaitTotalPrice "nullable — Prix forfait"
+        int forfaitDurationDays "nullable — Durée forfait"
+        decimal dailyCost "COMPUTED — somme CostLines en daily"
+        decimal dailyRevenue "COMPUTED — clientTjm ou forfaitDaily"
+        decimal dailyMargin "COMPUTED — revenue - cost"
+        decimal marginRate "COMPUTED — margin / revenue %"
+        decimal offshoreMargin "COMPUTED — internalTjm - cost"
+        decimal frontMargin "COMPUTED — clientTjm - internalTjm"
+        string placementId FK "UNIQUE"
+    }
+
+    CostLine {
+        string id PK "cuid()"
+        string label "NOT NULL — Ex: Salaire brut"
+        decimal amount "NOT NULL — Montant"
+        enum frequency "DAILY | MONTHLY | ANNUAL | ONE_TIME"
+        decimal dailyAmount "COMPUTED — Montant en daily"
+        enum category "SALARY | EMPLOYER_CHARGES | BENEFITS | etc."
+        boolean isActive "default true"
         string placementId FK "NOT NULL"
-        string month "Format YYYY-MM"
-        decimal tjmVente "TJM facturé au client"
-        decimal tjmAchat "TJM payé au freelance — nullable"
-        decimal salaireBrutMensuel "Salaire si CDI — nullable"
-        decimal chargesPatronalesPct "ex: 0.45 pour 45%"
-        decimal fraisGestionPct "ex: 0.05 pour 5%"
-        int joursOuvres "Jours ouvrés du mois"
-        int joursTravailles "Jours effectivement travaillés"
-        decimal caMensuel "COMPUTED: tjmVente x joursTravailles"
-        decimal coutMensuel "COMPUTED: selon type contrat"
-        decimal margeBrute "COMPUTED: CA - Coût"
-        decimal margeNette "COMPUTED: margeBrute - fraisGestion"
-        decimal tauxMarge "COMPUTED: margeNette / CA x 100"
-        datetime createdAt "default now()"
+    }
+
+    OrganizationRates {
+        string id PK "cuid()"
+        string name "NOT NULL — Ex: Taux France"
+        string country "nullable — Pays associé"
+        boolean isDefault "default false"
+        decimal chargesPatronalesPct "Ex: 0.4500"
+        decimal mutuelleEmployeurMonth "nullable"
+        decimal prevoyancePct "nullable"
+        int workingDaysPerMonth "default 18"
+        int workingDaysPerYear "default 218"
+        decimal fraisGestionPct "default 0.05"
+        string organizationId FK "NOT NULL"
+    }
+
+    CostLineTemplate {
+        string id PK "cuid()"
+        string label "NOT NULL — Ex: Charges patronales"
+        enum amountType "FIXED | PERCENTAGE_OF_SALARY | ASK_USER"
+        decimal fixedAmount "nullable — Montant fixe"
+        decimal percentageValue "nullable — Ex: 0.4500"
+        enum frequency "DAILY | MONTHLY | ANNUAL | ONE_TIME"
+        enum category "SALARY | EMPLOYER_CHARGES | etc."
+        boolean isDefault "default true"
+        string ratesId FK "NOT NULL"
+    }
+
+    ExchangeRate {
+        string id PK "cuid()"
+        string fromCurrency "NOT NULL — Ex: MAD"
+        string toCurrency "NOT NULL — Ex: EUR"
+        decimal rate "NOT NULL — Ex: 0.091743"
+        boolean isActive "default true"
+        datetime effectiveFrom "default now()"
+        string organizationId FK "UNIQUE avec from+to"
+    }
+
+    ApplicationActivity {
+        string id PK "cuid()"
+        enum type "TECHNICAL_EVALUATION | INTERNAL_INTERVIEW | etc."
+        enum status "PENDING | IN_PROGRESS | COMPLETED | CANCELLED | OVERDUE"
+        string title "NOT NULL"
+        text description "nullable"
+        datetime scheduledAt "nullable"
+        datetime deadline "nullable"
+        datetime completedAt "nullable"
+        string outcome "nullable — PASS | FAIL | CONDITIONAL"
+        text outcomeNotes "nullable"
+        string assignedToId FK "nullable"
+        string evaluationId FK "nullable UNIQUE"
+        string applicationId FK "NOT NULL"
+        string createdById FK "nullable"
+    }
+
+    SkillAlias {
+        string alias UK "NOT NULL — Ex: ReactJS"
+        string normalizedName "NOT NULL — Ex: React"
     }
 
     StaffingTeam {

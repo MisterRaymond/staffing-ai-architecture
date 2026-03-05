@@ -84,3 +84,18 @@ Le super admin peut "se connecter en tant que" un tenant pour le support :
 
 - [Flow de résolution Multi-Tenant](../diagrams/flows/multi-tenant-resolution.md)
 - [Séquence Onboarding Tenant](../diagrams/sequences/tenant-onboarding.md)
+
+## Suppression de données (RGPD)
+
+### Suppression d'un tenant (droit à la portabilité + effacement)
+
+1. L'admin du tenant demande la suppression depuis les paramètres
+2. Export complet des données (JSON/CSV) si demandé (droit à la portabilité)
+3. Le tenant passe en statut `CHURNED` avec un délai de rétention de 30 jours
+4. Pendant le délai : l'admin peut annuler, le super admin peut intervenir
+5. Après 30 jours : suppression définitive en cascade de toutes les données du tenant
+6. Le slug est libéré et peut être réutilisé
+
+### Suppression d'un candidat (droit à l'oubli)
+
+Sur demande d'un candidat, suppression de : Candidate, Skills, Experiences, Applications, MatchScores, TechnicalEvaluations, CandidatePoolHistory, CandidatePool, CandidateTags. Les données anonymisées sont conservées dans l'AuditLog (action = DELETE, sans données personnelles).

@@ -141,6 +141,21 @@ Conversion : mensuel ÷ 18 jours, annuel ÷ 218 jours.
 
 ## Dashboard financier
 
+### Devise d'affichage et taux de change
+
+Chaque tenant configure sa **devise d'affichage** (`Organization.displayCurrency`, par défaut EUR). Toutes les marges et KPIs des dashboards sont convertis dans cette devise.
+
+Pour les ESN multi-pays, l'admin configure les taux de change de référence :
+
+| De | Vers | Taux | Exemple |
+|---|---|---|---|
+| MAD | EUR | 0.091743 | 10 000 MAD = 917.43 EUR |
+| USD | EUR | 0.920000 | 1 000 USD = 920 EUR |
+
+Les taux sont saisis manuellement par l'admin et mis à jour quand nécessaire. Pas de récupération automatique (complexité inutile pour le MVP).
+
+**Exemple :** Un consultant au Maroc coûte 1 068 MAD/jour, la mission est vendue 550€/jour au client français. Le dashboard affiche tout en EUR : coût = 98€/j, TJM client = 550€/j, marge = 452€/j.
+
 ### Vue par placement
 
 ```
@@ -194,6 +209,7 @@ TechStaff Consulting — 45 consultants
 ──────────────────────────────────
 Consultants en mission   :    38 (84.4%)
 En intercontrat          :     7 (15.6%)
+Coût intercontrat        :  2 170€/j (~39 060€/mois)
 ──────────────────────────────────
 Marge moyenne            :    225€/j
 Taux de marge moyen      :    39.2%
@@ -203,6 +219,17 @@ Pôle le - rentable       : Testing (31.2%)
 Client le + rentable     : AXA (42.8%)
 Client le - rentable     : SocGen (33.1%)
 ```
+
+### Calcul de l'intercontrat
+
+Un consultant est en **intercontrat** quand :
+- Il est en CDI dans l'ESN (identifié par un Placement passé avec `contractType = CDI`)
+- Son `poolStatus` est `IN_POOL` (pas en mission, pas en process)
+- Il n'a aucun `Placement` actif
+
+Le **taux d'intercontrat** = consultants en intercontrat / total consultants CDI.
+
+Le **coût d'intercontrat** = somme des daily costs (depuis les CostLines du dernier Placement) des consultants sans mission. Ce chiffre est crucial : c'est de l'argent qui sort chaque jour sans revenu en face.
 
 ## Diagrammes associés
 

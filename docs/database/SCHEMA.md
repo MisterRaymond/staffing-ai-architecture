@@ -75,6 +75,37 @@ Configuration financière d'un placement. Définit le **type de facturation** (R
 ### CostLine
 Lignes de coûts libres associées à un placement. Chaque ligne a un label (libre), un montant, une fréquence (DAILY, MONTHLY, ANNUAL, ONE_TIME) et une catégorie (SALARY, EMPLOYER_CHARGES, BENEFITS, EQUIPMENT...). Le système convertit chaque ligne en **coût journalier** (dailyAmount) pour calculer le coût total du consultant. Pas de structure imposée : l'utilisateur ajoute les lignes qu'il veut.
 
+### ExchangeRate
+Taux de change de référence configurés par l'ESN. Chaque tenant définit ses propres taux (MAD→EUR, USD→EUR...) utilisés pour convertir les marges dans la devise d'affichage (`Organization.displayCurrency`). Un seul taux actif par paire de devises. Les taux sont mis à jour manuellement par l'admin.
+
+### SkillAlias
+Table globale de normalisation des compétences. Permet de mapper les variantes d'un même skill ("ReactJS", "React.js", "React JS" → "React"). Utilisée par le parsing IA pour standardiser les compétences extraites des CVs et fiches de poste. Partagée entre tous les tenants. Alimentée par le provider du SaaS.
+
+### ApplicationActivity
+Activités de qualification créées pendant la phase QUALIFYING du pipeline. Chaque activité a un type (TECHNICAL_EVALUATION, INTERNAL_INTERVIEW, TECHNICAL_TEST...), un assigné, une deadline, et un résultat (PASS/FAIL/CONDITIONAL). Les activités de type TECHNICAL_EVALUATION peuvent être liées à un `TechnicalEvaluation` détaillé avec scores par compétence.
+
+## Calcul de l'intercontrat
+
+Un consultant est en **intercontrat** quand il remplit ces conditions :
+- Il est en CDI dans l'ESN (type de contrat sur un placement précédent ou dans le vivier)
+- Son `poolStatus` est `IN_POOL` (pas en mission)
+- Il n'a aucun `Placement` actif (`status = ACTIVE`)
+
+Le **taux d'intercontrat** du tenant = nombre de consultants en intercontrat / nombre total de consultants CDI.
+
+Le **coût d'intercontrat** = somme des daily costs des consultants sans mission × nombre de jours en intercontrat.
+
+## Suppression de données (RGPD)
+
+Chaque tenant peut demander la suppression de ses données. Le flow :
+1. L'admin du tenant déclenche la suppression depuis les paramètres
+2. Les données sont exportées (droit à la portabilité) si demandé
+3. Toutes les données du tenant sont supprimées en cascade (`onDelete: Cascade` sur Organization)
+4. Le slug est libéré après un délai de rétention de 30 jours (pour éviter les suppressions accidentelles)
+5. Le super admin peut annuler la suppression pendant le délai de rétention
+
+Pour un candidat individuel (droit à l'oubli) : suppression du Candidate et de toutes ses données liées (Skills, Experiences, Applications, MatchScores, évaluations, historique vivier).
+
 ### AuditLog
 Journal d'audit de toutes les actions sensibles, par tenant.
 
@@ -83,7 +114,9 @@ Journal d'audit de toutes les actions sensibles, par tenant.
 - `Organization.slug` : UNIQUE — un seul sous-domaine par tenant
 - `User.email` : UNIQUE globalement
 - `MatchScore` : UNIQUE sur (candidateId, missionId) — un seul score par paire
-- `FinancialRecord` : UNIQUE sur (placementId, month) — un seul record par mois
+- `PlacementFinance` : UNIQUE sur placementId — une seule config financière par placement
+- `ExchangeRate` : UNIQUE sur (organizationId, fromCurrency, toCurrency) — un seul taux par paire de devises
+- `SkillAlias` : UNIQUE sur alias — un seul mapping par alias
 - Toutes les clés étrangères ont `onDelete: Cascade` au niveau du tenant
 
 ## Index recommandés

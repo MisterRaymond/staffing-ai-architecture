@@ -48,47 +48,47 @@ PUT /api/roles/:id/permissions
 
 ## Candidats
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/candidates` | Liste paginée + filtres | Oui |
-| GET | `/api/candidates/:id` | Détail d'un candidat | Oui |
-| POST | `/api/candidates` | Créer un candidat | Recruiter+ |
-| PUT | `/api/candidates/:id` | Modifier un candidat | Recruiter+ |
-| DELETE | `/api/candidates/:id` | Supprimer un candidat | Admin |
-| POST | `/api/candidates/parse-cv` | Upload + parsing CV par IA | Recruiter+ |
-| POST | `/api/candidates/:id/reparse` | Re-parser le CV existant | Recruiter+ |
-| GET | `/api/candidates/:id/matches` | Missions qui matchent ce candidat | Oui |
-| GET | `/api/candidates/:id/pool-history` | Historique vivier du candidat | Oui |
+| GET | `/api/candidates` | Liste paginée + filtres | `candidates:read` |
+| GET | `/api/candidates/:id` | Détail d'un candidat | `candidates:read` |
+| POST | `/api/candidates` | Créer un candidat | `candidates:create` |
+| PUT | `/api/candidates/:id` | Modifier un candidat | `candidates:update` |
+| DELETE | `/api/candidates/:id` | Supprimer un candidat | `candidates:delete` |
+| POST | `/api/candidates/parse-cv` | Upload + parsing CV par IA | `candidates:parse_cv` |
+| POST | `/api/candidates/:id/reparse` | Re-parser le CV existant | `candidates:parse_cv` |
+| GET | `/api/candidates/:id/matches` | Missions qui matchent ce candidat | `matching:read` |
+| GET | `/api/candidates/:id/pool-history` | Historique vivier du candidat | `pool:history` |
 | PUT | `/api/candidates/:id/pool-status` | Changer le statut vivier | `pool:manage` |
 | POST | `/api/candidates/:id/validate` | Valider un CV en attente → IN_POOL | `pool:validate` |
 | POST | `/api/candidates/:id/reject-review` | Rejeter un CV en attente → ARCHIVED | `pool:validate` |
 | POST | `/api/candidates/:id/tags` | Ajouter des tags | `pool:tag` |
-| DELETE | `/api/candidates/:id/tags/:tagId` | Supprimer un tag | Recruiter+ |
+| DELETE | `/api/candidates/:id/tags/:tagId` | Supprimer un tag | `pool:tag` |
 
 ## Staffing Teams (Pôles / Équipes)
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/staffing-teams` | Liste des pôles de l'organisation | Oui |
-| GET | `/api/staffing-teams/:id` | Détail d'un pôle + membres + vivier | Oui |
-| POST | `/api/staffing-teams` | Créer un pôle | Manager+ |
-| PUT | `/api/staffing-teams/:id` | Modifier un pôle | Manager+ |
-| DELETE | `/api/staffing-teams/:id` | Supprimer un pôle | Admin |
-| POST | `/api/staffing-teams/:id/members` | Ajouter un membre au pôle | Manager+ |
-| DELETE | `/api/staffing-teams/:id/members/:userId` | Retirer un membre | Manager+ |
-| POST | `/api/staffing-teams/:id/candidates` | Ajouter un candidat au vivier du pôle | Recruiter+ |
-| DELETE | `/api/staffing-teams/:id/candidates/:candidateId` | Retirer du vivier | Recruiter+ |
-| GET | `/api/staffing-teams/:id/pool` | Vivier de candidats du pôle | Oui |
+| GET | `/api/staffing-teams` | Liste des pôles de l'organisation | `teams:read` |
+| GET | `/api/staffing-teams/:id` | Détail d'un pôle + membres + vivier | `teams:read` |
+| POST | `/api/staffing-teams` | Créer un pôle | `teams:create` |
+| PUT | `/api/staffing-teams/:id` | Modifier un pôle | `teams:update` |
+| DELETE | `/api/staffing-teams/:id` | Supprimer un pôle | `teams:delete` |
+| POST | `/api/staffing-teams/:id/members` | Ajouter un membre au pôle | `teams:manage_members` |
+| DELETE | `/api/staffing-teams/:id/members/:userId` | Retirer un membre | `teams:manage_members` |
+| POST | `/api/staffing-teams/:id/candidates` | Ajouter un candidat au vivier du pôle | `teams:manage_pool` |
+| DELETE | `/api/staffing-teams/:id/candidates/:candidateId` | Retirer du vivier | `teams:manage_pool` |
+| GET | `/api/staffing-teams/:id/pool` | Vivier de candidats du pôle | `pool:read` |
 
 ## Talent Pool (Vivier)
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/talent-pool` | Vivier global (tous pôles) + filtres | Oui |
-| GET | `/api/talent-pool/stats` | Stats vivier (taille, chaleur, par pôle) | Manager+ |
-| POST | `/api/talent-pool/search` | Recherche avancée dans le vivier | Oui |
-| POST | `/api/talent-pool/reactivate` | Réactiver un candidat sur une mission | Recruiter+ |
-| GET | `/api/talent-pool/cold` | Candidats froids (non contactés 3+ mois) | Manager+ |
+| GET | `/api/talent-pool` | Vivier global (tous pôles) + filtres | `pool:read` |
+| GET | `/api/talent-pool/stats` | Stats vivier (taille, chaleur, par pôle) | `pool:read` |
+| POST | `/api/talent-pool/search` | Recherche avancée dans le vivier | `pool:read` |
+| POST | `/api/talent-pool/reactivate` | Réactiver un candidat sur une mission | `pool:reactivate` |
+| GET | `/api/talent-pool/cold` | Candidats froids (non contactés 3+ mois) | `pool:read` |
 
 ### Filtres vivier (`GET /api/talent-pool`)
 ```
@@ -115,38 +115,38 @@ PUT /api/roles/:id/permissions
 
 ## Clients
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/clients` | Liste des clients | Oui |
-| GET | `/api/clients/:id` | Détail client + missions | Oui |
-| POST | `/api/clients` | Créer un client | Recruiter+ |
-| PUT | `/api/clients/:id` | Modifier | Recruiter+ |
-| DELETE | `/api/clients/:id` | Supprimer | Admin |
+| GET | `/api/clients` | Liste des clients | `clients:read` |
+| GET | `/api/clients/:id` | Détail client + missions | `clients:read` |
+| POST | `/api/clients` | Créer un client | `clients:create` |
+| PUT | `/api/clients/:id` | Modifier | `clients:update` |
+| DELETE | `/api/clients/:id` | Supprimer | `clients:delete` |
 
 ## Missions
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/missions` | Liste paginée + filtres | Oui |
-| GET | `/api/missions/:id` | Détail mission | Oui |
-| POST | `/api/missions` | Créer une mission (+ upload fiche de poste optionnel) | Recruiter+ |
-| PUT | `/api/missions/:id` | Modifier | Recruiter+ |
-| DELETE | `/api/missions/:id` | Supprimer | Admin |
-| POST | `/api/missions/:id/match` | Lancer le matching IA | Recruiter+ |
-| GET | `/api/missions/:id/matches` | Résultats du matching | Oui |
-| PUT | `/api/missions/:id/status` | Changer le statut | Recruiter+ |
+| GET | `/api/missions` | Liste paginée + filtres | `missions:read` |
+| GET | `/api/missions/:id` | Détail mission | `missions:read` |
+| POST | `/api/missions` | Créer une mission (+ upload fiche de poste optionnel) | `missions:create` |
+| PUT | `/api/missions/:id` | Modifier | `missions:update` |
+| DELETE | `/api/missions/:id` | Supprimer | `missions:delete` |
+| POST | `/api/missions/:id/match` | Lancer le matching IA | `matching:launch` |
+| GET | `/api/missions/:id/matches` | Résultats du matching | `matching:read` |
+| PUT | `/api/missions/:id/status` | Changer le statut | `missions:update` |
 
 ## Fiches de Poste / Appels d'Offre
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| POST | `/api/missions/:id/job-description` | Upload fiche de poste (PDF/DOCX) + parsing IA | Recruiter+ |
-| GET | `/api/missions/:id/job-description` | Détail fiche parsée + critères extraits | Oui |
-| PUT | `/api/missions/:id/job-description` | Remplacer la fiche de poste (re-upload) | Recruiter+ |
-| DELETE | `/api/missions/:id/job-description` | Supprimer la fiche | Recruiter+ |
-| POST | `/api/missions/:id/job-description/reparse` | Re-parser la fiche existante | Recruiter+ |
-| GET | `/api/missions/:id/job-description/status` | Statut du parsing (polling) | Oui |
-| PUT | `/api/missions/:id/job-description/validate` | Valider/ajuster les critères extraits | Recruiter+ |
+| POST | `/api/missions/:id/job-description` | Upload fiche de poste (PDF/DOCX) + parsing IA | `job_descriptions:upload` |
+| GET | `/api/missions/:id/job-description` | Détail fiche parsée + critères extraits | `job_descriptions:read` |
+| PUT | `/api/missions/:id/job-description` | Remplacer la fiche de poste (re-upload) | `job_descriptions:upload` |
+| DELETE | `/api/missions/:id/job-description` | Supprimer la fiche | `job_descriptions:upload` |
+| POST | `/api/missions/:id/job-description/reparse` | Re-parser la fiche existante | `job_descriptions:reparse` |
+| GET | `/api/missions/:id/job-description/status` | Statut du parsing (polling) | `job_descriptions:read` |
+| PUT | `/api/missions/:id/job-description/validate` | Valider/ajuster les critères extraits | `job_descriptions:validate` |
 
 ### Flow d'upload de fiche de poste
 
@@ -251,6 +251,15 @@ Quand une activité de type `TECHNICAL_EVALUATION` est complétée, l'Expert rem
 | PUT | `/api/finance/rates/:id` | Modifier un jeu de taux | `finance:manage` |
 | DELETE | `/api/finance/rates/:id` | Supprimer un jeu de taux | `finance:manage` |
 
+### Taux de change
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/finance/exchange-rates` | Liste des taux de change | `finance:manage` |
+| POST | `/api/finance/exchange-rates` | Créer un taux (MAD→EUR) | `finance:manage_rates` |
+| PUT | `/api/finance/exchange-rates/:id` | Modifier un taux | `finance:manage_rates` |
+| DELETE | `/api/finance/exchange-rates/:id` | Supprimer un taux | `finance:manage_rates` |
+
 ### Configuration financière d'un placement
 
 | Méthode | Route | Description | Permission |
@@ -272,23 +281,23 @@ Quand une activité de type `TECHNICAL_EVALUATION` est complétée, l'Expert rem
 
 ## Matching IA
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| POST | `/api/ai/match` | Matching candidat ↔ mission | Recruiter+ |
-| POST | `/api/ai/batch-match` | Matching batch (tous candidats pour 1 mission) | Recruiter+ |
-| GET | `/api/ai/usage` | Consommation API IA du tenant | Admin |
+| POST | `/api/ai/match` | Matching candidat ↔ mission | `matching:launch` |
+| POST | `/api/ai/batch-match` | Matching batch (tous candidats pour 1 mission) | `matching:launch` |
+| GET | `/api/ai/usage` | Consommation API IA du tenant | `admin:settings` |
 
 ## Sourcing Integrations (Outils externes)
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/integrations` | Liste des intégrations configurées | Admin |
-| POST | `/api/integrations` | Connecter un outil de sourcing | Admin |
-| PUT | `/api/integrations/:id` | Modifier la configuration | Admin |
-| DELETE | `/api/integrations/:id` | Déconnecter un outil | Admin |
-| POST | `/api/integrations/:id/sync` | Forcer une synchronisation manuelle | Admin |
-| GET | `/api/integrations/:id/status` | Statut de la dernière sync | Admin |
-| POST | `/api/integrations/:id/test` | Tester la connexion | Admin |
+| GET | `/api/integrations` | Liste des intégrations configurées | `integrations:read` |
+| POST | `/api/integrations` | Connecter un outil de sourcing | `integrations:manage` |
+| PUT | `/api/integrations/:id` | Modifier la configuration | `integrations:manage` |
+| DELETE | `/api/integrations/:id` | Déconnecter un outil | `integrations:manage` |
+| POST | `/api/integrations/:id/sync` | Forcer une synchronisation manuelle | `integrations:sync` |
+| GET | `/api/integrations/:id/status` | Statut de la dernière sync | `integrations:read` |
+| POST | `/api/integrations/:id/test` | Tester la connexion | `integrations:manage` |
 
 ### Webhooks sourcing (réception de CVs)
 
@@ -341,15 +350,15 @@ Quand une activité de type `TECHNICAL_EVALUATION` est complétée, l'Expert rem
 
 ## Super Admin (Provider)
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/admin/tenants` | Liste tous les tenants | SuperAdmin |
-| GET | `/api/admin/tenants/:id` | Détail d'un tenant | SuperAdmin |
-| POST | `/api/admin/tenants` | Créer un tenant manuellement | SuperAdmin |
-| PATCH | `/api/admin/tenants/:id/status` | Suspendre / Réactiver | SuperAdmin |
-| POST | `/api/admin/tenants/:id/impersonate` | Se connecter en tant que | SuperAdmin |
-| GET | `/api/admin/metrics` | KPIs SaaS (MRR, churn, etc.) | SuperAdmin |
-| GET | `/api/admin/billing` | Vue facturation Stripe | SuperAdmin |
+| GET | `/api/admin/tenants` | Liste tous les tenants | Super Admin |
+| GET | `/api/admin/tenants/:id` | Détail d'un tenant | Super Admin |
+| POST | `/api/admin/tenants` | Créer un tenant manuellement | Super Admin |
+| PATCH | `/api/admin/tenants/:id/status` | Suspendre / Réactiver | Super Admin |
+| POST | `/api/admin/tenants/:id/impersonate` | Se connecter en tant que | Super Admin |
+| GET | `/api/admin/metrics` | KPIs SaaS (MRR, churn, etc.) | Super Admin |
+| GET | `/api/admin/billing` | Vue facturation Stripe | Super Admin |
 
 ## Webhooks
 

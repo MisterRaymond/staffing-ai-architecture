@@ -260,14 +260,81 @@ classDiagram
         +String organizationId
     }
 
-    class FinancialRecord {
+    class PlacementFinance {
         +String id
+        +BillingType billingType
+        +String currency
+        +Decimal clientTjm
+        +Decimal internalTjm
+        +String intermediaryName
+        +Decimal forfaitTotalPrice
+        +Int forfaitDurationDays
+        +Decimal dailyCost
+        +Decimal dailyRevenue
+        +Decimal dailyMargin
+        +Decimal marginRate
+        +Decimal offshoreMargin
+        +Decimal frontMargin
         +String placementId
-        +String month
-        +Decimal tjmVente
-        +Decimal coutMensuel
-        +Decimal margeBrute
-        +Decimal tauxMarge
+    }
+
+    class CostLine {
+        +String id
+        +String label
+        +Decimal amount
+        +CostFrequency frequency
+        +Decimal dailyAmount
+        +CostCategory category
+        +Boolean isActive
+        +String placementId
+    }
+
+    class OrganizationRates {
+        +String id
+        +String name
+        +String country
+        +Boolean isDefault
+        +Decimal chargesPatronalesPct
+        +Int workingDaysPerMonth
+        +Int workingDaysPerYear
+        +String organizationId
+    }
+
+    class CostLineTemplate {
+        +String id
+        +String label
+        +CostAmountType amountType
+        +Decimal fixedAmount
+        +Decimal percentageValue
+        +CostFrequency frequency
+        +CostCategory category
+        +String ratesId
+    }
+
+    class ExchangeRate {
+        +String id
+        +String fromCurrency
+        +String toCurrency
+        +Decimal rate
+        +Boolean isActive
+        +String organizationId
+    }
+
+    class ApplicationActivity {
+        +String id
+        +ActivityType type
+        +ActivityStatus status
+        +String title
+        +String description
+        +DateTime scheduledAt
+        +DateTime deadline
+        +DateTime completedAt
+        +String outcome
+        +String outcomeNotes
+        +String assignedToId
+        +String evaluationId
+        +String applicationId
+        +String createdById
     }
 
     Organization "1" --> "*" Role : définit les rôles
@@ -309,5 +376,13 @@ classDiagram
     Mission "1" --> "*" Application : reçoit
     Mission "1" --> "*" Placement : aboutit à
 
-    Placement "1" --> "*" FinancialRecord : génère
+    Placement "1" --> "1" PlacementFinance : config financière
+    Placement "1" --> "*" CostLine : lignes de coûts
+    
+    Organization "1" --> "*" OrganizationRates : taux par pays
+    Organization "1" --> "*" ExchangeRate : taux de change
+    OrganizationRates "1" --> "*" CostLineTemplate : presets de coûts
+
+    Application "1" --> "*" ApplicationActivity : activités de qualification
+    ApplicationActivity "0..1" --> "0..1" TechnicalEvaluation : évaluation détaillée
 ```
