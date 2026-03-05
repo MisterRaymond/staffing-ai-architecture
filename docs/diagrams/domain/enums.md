@@ -42,11 +42,13 @@ classDiagram
 
     class PoolStatus {
         <<enumeration>>
+        PENDING_REVIEW
         IN_POOL
         ACTIVE_PROCESS
         ON_MISSION
         BLACKLISTED
         DO_NOT_CONTACT
+        ARCHIVED
     }
 
     class CandidateSource {

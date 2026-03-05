@@ -37,8 +37,11 @@ Le système de notifications est **multi-canal** (in-app + email), **configurabl
 
 | Type d'événement | Déclencheur | Destinataires | Template titre |
 |---|---|---|---|
-| `candidate_new` | Nouveau candidat ajouté au pôle | Responsable Recrutement du pôle | "Nouveau candidat : {{candidateName}}" |
-| `candidate_imported` | CV importé via outil de sourcing | Responsable Recrutement du pôle | "CV importé depuis {{source}} : {{candidateName}}" |
+| `candidate_pending_review` | Nouveau CV uploadé ou importé, en attente de validation | Lead du pôle (Resp. Recrutement) | "CV à valider : {{candidateName}} — sourcé par {{sourcerName}}" |
+| `candidate_validated` | Lead valide le CV → intègre le vivier | Chargé de Recrutement qui a sourcé | "✅ {{candidateName}} validé et ajouté au vivier" |
+| `candidate_review_rejected` | Lead rejette le CV | Chargé de Recrutement qui a sourcé | "❌ {{candidateName}} non retenu : {{reason}}" |
+| `candidate_new` | Candidat validé et ajouté au pôle | Membres du pôle | "Nouveau candidat dans le vivier : {{candidateName}}" |
+| `candidate_imported` | CV importé via outil de sourcing (en attente de validation) | Lead du pôle | "CV importé depuis {{source}} à valider : {{candidateName}}" |
 | `application_new` | Candidat postule à une mission | Recruteur assigné + Responsable du pôle | "Nouvelle candidature sur {{missionTitle}}" |
 | `application_stage_changed` | Candidature avance dans le pipeline | Recruteur assigné | "{{candidateName}} passe à l'étape {{newStage}}" |
 | `application_rejected` | Candidature rejetée | Candidat (si portail actif) | "Mise à jour de votre candidature" |

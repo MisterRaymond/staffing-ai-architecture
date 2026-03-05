@@ -13,14 +13,14 @@ graph TB
     DIR --> RL_DATA["👔 Resp. Recrutement Data<br/>Laura"]
 
     subgraph POLE_JAVA["☕ Pôle Java/JEE"]
-        RL_JAVA --> RJ1["🎯 Recruteur"]
-        RL_JAVA --> RJ2["🎯 Recruteur"]
+        RL_JAVA --> RJ1["🎯 Resp. Recrutement"]
+        RL_JAVA --> RJ2["🎯 Resp. Recrutement"]
         RL_JAVA --> CRJ["🔍 Chargé de Recrutement"]
         RL_JAVA --> ETJ["🧪 Expert Technique Java"]
     end
 
     subgraph POLE_DATA["📊 Pôle Data"]
-        RL_DATA --> RD1["🎯 Recruteur"]
+        RL_DATA --> RD1["🎯 Resp. Recrutement"]
         RL_DATA --> CRD["🔍 Chargé de Recrutement"]
         RL_DATA --> ETD["🧪 Expert Technique Data"]
     end
@@ -55,7 +55,7 @@ graph LR
     DM -->|"Valide la qualité et envoie"| BNP
 ```
 
-## 3. Circuit du sourcing
+## 3. Circuit du sourcing — avec validation
 
 ```mermaid
 graph LR
@@ -69,19 +69,66 @@ graph LR
 
     subgraph POLE["☕ Pôle Java/JEE"]
         CR["🔍 Chargé de Recrutement"]
-        VIVIER[("🗂️ Vivier du pôle<br/>Candidats qualifiés")]
-        REC["🎯 Recruteur"]
+        PENDING[("⏳ En attente\nde validation")]
+        RESP["👔 Resp. Recrutement<br/>Valide ou rejette"]
+        VIVIER[("🗂️ Vivier du pôle<br/>Candidats validés")]
+        REC["🎯 Resp. Recrutement"]
     end
 
-    SR -->|"CVs qualifiés"| CR
-    LI -->|"CVs qualifiés"| CR
-    IND -->|"CVs qualifiés"| CR
-    APEC -->|"CVs qualifiés"| CR
-    WTTJ -->|"CVs qualifiés"| CR
+    SR -->|"CVs via API"| CR
+    LI -->|"CVs via API"| CR
+    IND -->|"CVs via API"| CR
+    APEC -->|"CVs via API"| CR
+    WTTJ -->|"CVs via API"| CR
 
-    CR -->|"Filtre + tag + ajout"| VIVIER
+    CR -->|"Upload + premier filtre"| PENDING
+    PENDING -->|"🔔 Notification"| RESP
+    RESP -->|"✅ Validé"| VIVIER
+    RESP -->|"❌ Rejeté"| TRASH["🗑️ Archivé"]
     VIVIER -->|"Candidats disponibles"| REC
-    REC -->|"Lance le matching IA"| VIVIER
+    REC -->|"Matching IA"| VIVIER
+```
+
+## 4. Détail du circuit de validation des CVs
+
+```mermaid
+sequenceDiagram
+    actor CR as Chargé de Recrutement
+    participant SaaS as StaffingAI
+    participant API as Outil Sourcing (API)
+    actor RESP as Resp. Recrutement (Lead du pôle)
+
+    Note over CR,RESP: ═══ SCÉNARIO A : Upload manuel ═══
+
+    CR->>SaaS: Upload CV + informations candidat
+    SaaS->>SaaS: Parsing IA du CV
+    SaaS->>SaaS: Candidat créé avec status = PENDING_REVIEW
+    SaaS->>RESP: 🔔 "Nouveau candidat à valider : Jean Dupont"
+
+    RESP->>SaaS: Consulte le profil parsé + skills extraits
+    
+    alt Profil pertinent pour le pôle
+        RESP->>SaaS: ✅ Valider → status = IN_POOL
+        SaaS->>SaaS: Candidat intègre le vivier du pôle
+        SaaS->>CR: 🔔 "Jean Dupont validé et ajouté au vivier"
+    else Profil non pertinent
+        RESP->>SaaS: ❌ Rejeter + motif
+        SaaS->>SaaS: Candidat archivé (pas dans le vivier)
+        SaaS->>CR: 🔔 "Jean Dupont non retenu : motif"
+    end
+
+    Note over CR,RESP: ═══ SCÉNARIO B : Import automatique via API ═══
+
+    API->>SaaS: Webhook : nouveau CV qualifié dans SmartRecruiters
+    SaaS->>SaaS: Dédoublonnage (email existant ?)
+    SaaS->>SaaS: Parsing IA du CV
+    SaaS->>SaaS: Candidat créé avec status = PENDING_REVIEW
+    SaaS->>RESP: 🔔 "CV importé depuis SmartRecruiters à valider : Marie Martin"
+    SaaS->>CR: 🔔 "CV importé : Marie Martin — en attente de validation"
+
+    RESP->>SaaS: Consulte le profil
+    RESP->>SaaS: ✅ Valider → status = IN_POOL
+    SaaS->>SaaS: Candidat intègre le vivier
 ```
 
 ## Les rôles expliqués
@@ -98,13 +145,11 @@ graph LR
 
 | Rôle | Ce qu'il fait | Dans le SaaS |
 |------|-------------|-------------|
-| **Resp. Recrutement** | Pilote un pôle, distribue les missions, valide avant client | Dashboard pôle, vivier, pipeline, matching IA |
-| **Recruteur** | Process complet : qualification → entretien → proposition → suivi | Pipeline Kanban, matching IA, activités de qualification |
-| **Chargé de Recrutement** | Source via outils externes, alimente le vivier, premier filtre | Upload CVs, intégrations sourcing, tags, vivier |
+| **Resp. Recrutement (Lead)** | Pilote un pôle, distribue les missions, **valide les candidats avant intégration au vivier**, valide avant proposition client | Dashboard pôle, vivier, pipeline, matching IA, validation CVs |
+| **Resp. Recrutement** | Process complet : qualification → activités → proposition → suivi | Pipeline Kanban, matching IA, activités de qualification |
+| **Chargé de Recrutement** | Source via outils externes, alimente le vivier **(soumis à validation du Lead)**, premier filtre | Upload CVs, intégrations sourcing, tags |
 | **Expert Technique** | Évalue techniquement les candidats quand on lui assigne une activité | Activités assignées, formulaire d'évaluation |
 
-### Comment les deux filières se croisent
+### Pourquoi la validation est nécessaire
 
-Le client BNP envoie un appel d'offre pour un "Dev Java Senior". Thomas (Chef de Projet Delivery BNP) reçoit le besoin et le transmet à Ahmed (Resp. Recrutement Java). Ahmed active son pôle : le Chargé de Recrutement source sur LinkedIn, le Recruteur lance le matching IA sur le vivier, l'Expert Technique évalue les candidats shortlistés. Ahmed propose les meilleurs profils à Thomas, qui valide la qualité et les envoie au client.
-
-Quand BNP a besoin d'un Data Engineer, Thomas transmet à Laura (Resp. Recrutement Data) — même mécanique, autre pôle.
+Sans validation, n'importe quel CV sourcé atterrit directement dans le vivier. Résultat : vivier pollué, matching IA dégradé (bruit dans les résultats), perte de confiance des recruteurs dans l'outil. Le Resp. Recrutement (Lead du pôle) est le **gardien de la qualité du vivier**. Il valide que le profil est pertinent pour son pôle avant de l'intégrer.

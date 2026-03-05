@@ -59,8 +59,10 @@ PUT /api/roles/:id/permissions
 | POST | `/api/candidates/:id/reparse` | Re-parser le CV existant | Recruiter+ |
 | GET | `/api/candidates/:id/matches` | Missions qui matchent ce candidat | Oui |
 | GET | `/api/candidates/:id/pool-history` | Historique vivier du candidat | Oui |
-| PUT | `/api/candidates/:id/pool-status` | Changer le statut vivier | Recruiter+ |
-| POST | `/api/candidates/:id/tags` | Ajouter des tags | Recruiter+ |
+| PUT | `/api/candidates/:id/pool-status` | Changer le statut vivier | `pool:manage` |
+| POST | `/api/candidates/:id/validate` | Valider un CV en attente → IN_POOL | `pool:validate` |
+| POST | `/api/candidates/:id/reject-review` | Rejeter un CV en attente → ARCHIVED | `pool:validate` |
+| POST | `/api/candidates/:id/tags` | Ajouter des tags | `pool:tag` |
 | DELETE | `/api/candidates/:id/tags/:tagId` | Supprimer un tag | Recruiter+ |
 
 ## Staffing Teams (Pôles / Équipes)
@@ -284,9 +286,11 @@ Quand une activité de type `TECHNICAL_EVALUATION` est complétée, l'Expert rem
 3. Le SaaS reçoit le CV + données candidat
 4. Dédoublonnage (email déjà existant dans le tenant ?)
 5. Parsing IA du CV (extraction skills, XP, etc.)
-6. Le candidat est ajouté au vivier avec source = SMART_RECRUITERS
-7. Tags auto-générés + assignation au pôle du chargé de recrutement
-8. Notification au Responsable Recrutement du pôle
+6. Le candidat est créé avec poolStatus = PENDING_REVIEW et source = SMART_RECRUITERS
+7. Notification au Lead du pôle : "CV importé à valider"
+8. Le Lead consulte le profil parsé et valide ou rejette
+9. Si validé → poolStatus = IN_POOL, candidat intègre le vivier
+10. Tags auto-générés + notification au Chargé de Recrutement
 ```
 
 ## Notifications

@@ -95,11 +95,13 @@ model RolePermission {
 }
 
 enum PoolStatus {
-  IN_POOL           // Disponible dans le vivier pour futures missions
+  PENDING_REVIEW    // En attente de validation par le Lead du pôle
+  IN_POOL           // Validé — disponible dans le vivier pour futures missions
   ACTIVE_PROCESS    // En cours de process sur une mission
   ON_MISSION        // Actuellement en mission
   BLACKLISTED       // Ne plus contacter
   DO_NOT_CONTACT    // Demande du candidat
+  ARCHIVED          // Rejeté à la validation — pas dans le vivier
 }
 
 enum CandidateSource {
@@ -392,8 +394,11 @@ model Candidate {
   importedFromTool     String?                          // ID externe dans l'outil source
   notes                String?       @db.Text
   // ── Vivier / Talent Pool ──
-  poolStatus           PoolStatus    @default(IN_POOL)
+  poolStatus           PoolStatus    @default(PENDING_REVIEW)
   poolNotes            String?       @db.Text      // Notes pour le vivier (pourquoi garder ce profil)
+  poolReviewedById     String?                      // Lead qui a validé/rejeté
+  poolReviewedAt       DateTime?                    // Date de la validation
+  poolRejectionReason  String?                      // Motif si rejeté à la validation
   lastContactedAt      DateTime?                    // Dernier contact avec le candidat
   poolScore            Int?                          // Score de "chaleur" 1-5 (5 = très chaud)
   createdAt            DateTime      @default(now())

@@ -17,7 +17,7 @@ Les Chargés de Recrutement (`SOURCING_OFFICER`) utilisent des outils de sourcin
 
 ## Architecture d'intégration
 
-### Pattern : Webhook + API bidirectionnel
+### Pattern : Webhook + API bidirectionnel + Validation
 
 ```
 Outil externe (SmartRecruiters)
@@ -28,8 +28,13 @@ Outil externe (SmartRecruiters)
     │              ├── Extraction des données candidat
     │              ├── Dédoublonnage (email existant ?)
     │              ├── Parsing IA du CV
-    │              ├── Ajout au vivier (source = SMART_RECRUITERS)
-    │              └── Notification au Responsable Recrutement
+    │              ├── Candidat créé avec poolStatus = PENDING_REVIEW
+    │              ├── Notification au Lead du pôle : "CV à valider"
+    │              │
+    │              └── ⏳ En attente de validation par le Lead
+    │                     │
+    │                     ├── ✅ Validé → poolStatus = IN_POOL → vivier
+    │                     └── ❌ Rejeté → poolStatus = ARCHIVED
     │
     └── API Pull ← GET /sync (fallback si webhook manqué)
                     │

@@ -60,6 +60,7 @@ Exemple : le rôle "Recruteur" a la permission `candidates:read` avec scope `tea
 |------|-----|-------------|
 | `pool:read` | Voir le vivier | Accès au talent pool |
 | `pool:manage` | Gérer le vivier | Changer poolStatus, poolScore, tags |
+| `pool:validate` | Valider un candidat | Approuver/rejeter un CV en attente de validation (PENDING_REVIEW → IN_POOL ou ARCHIVED) |
 | `pool:reactivate` | Réactiver un candidat | Remettre en process depuis le vivier |
 | `pool:tag` | Gérer les tags | Créer, modifier, supprimer des tags |
 | `pool:history` | Voir l'historique vivier | Historique des mouvements d'un candidat |
@@ -211,7 +212,7 @@ Toutes les permissions avec scope `all`. Non supprimable.
 | Permissions | Scope |
 |-------------|-------|
 | `candidates:*` | `team` |
-| `pool:*` | `team` |
+| `pool:*` (incluant `pool:validate`) | `team` |
 | `missions:create`, `missions:read`, `missions:update` | `team` |
 | `pipeline:*` | `team` |
 | `activities:*` | `team` |
