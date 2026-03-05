@@ -128,15 +128,32 @@ enum MissionStatus {
 enum PipelineStage {
   NEW
   PRESELECTED
-  TECHNICAL_EVALUATION  // En attente d'évaluation par un Expert Technique
-  CONDITIONAL_HOLD      // Évaluation conditionnelle — en attente de décision
-  INTERNAL_INTERVIEW
+  QUALIFYING            // Étape flexible — le Responsable active les activités qu'il veut
   PROPOSED_TO_CLIENT
   CLIENT_INTERVIEW
   VALIDATED
   ON_MISSION
   REJECTED
   CANCELLED
+}
+
+enum ActivityType {
+  TECHNICAL_EVALUATION    // Évaluation technique par un Expert
+  INTERNAL_INTERVIEW      // Entretien interne (RH, motivation, soft skills)
+  TECHNICAL_TEST          // Test technique en ligne (ex: CodinGame, HackerRank)
+  REFERENCE_CHECK         // Vérification des références
+  SALARY_NEGOTIATION      // Négociation salariale / TJM
+  DOCUMENT_COLLECTION     // Collecte de documents (diplômes, certifs)
+  CLIENT_PRESCREEN        // Pré-qualification par le client (avant entretien formel)
+  OTHER                   // Activité libre
+}
+
+enum ActivityStatus {
+  PENDING       // Planifiée, pas encore commencée
+  IN_PROGRESS   // En cours
+  COMPLETED     // Terminée
+  CANCELLED     // Annulée
+  OVERDUE       // En retard (deadline dépassée)
 }
 
 enum SkillLevel {
@@ -281,6 +298,8 @@ model User {
   createdCandidates Candidate[] @relation("CreatedBy")
   createdMissions   Mission[]   @relation("CreatedBy")
   assignedApplications Application[] @relation("AssignedTo")
+  assignedActivities   ApplicationActivity[] @relation("ActivityAssignee")
+  createdActivities    ApplicationActivity[] @relation("ActivityCreator")
   evaluations          TechnicalEvaluation[] @relation("Evaluator")
   notificationsReceived Notification[] @relation("NotificationRecipient")
   notificationsSent     Notification[] @relation("NotificationSender")
@@ -702,11 +721,58 @@ model Application {
   assignedTo   User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
 
   evaluations  TechnicalEvaluation[]
+  activities   ApplicationActivity[]
 
   @@unique([candidateId, missionId])
   @@index([organizationId, stage])
   @@index([missionId])
   @@map("applications")
+}
+
+// ─────────────────────────────────────────────
+// APPLICATION ACTIVITY (Activités de qualification)
+// ─────────────────────────────────────────────
+// Les activités sont des étapes optionnelles que le
+// Responsable Recrutement déclenche librement pendant
+// la phase QUALIFYING. Pas d'ordre imposé.
+// ─────────────────────────────────────────────
+
+model ApplicationActivity {
+  id              String         @id @default(cuid())
+  type            ActivityType
+  status          ActivityStatus @default(PENDING)
+  title           String                             // Ex: "Entretien technique Java avec Ahmed"
+  description     String?        @db.Text
+  // Planification
+  scheduledAt     DateTime?                          // Date prévue
+  deadline        DateTime?                          // Date limite
+  completedAt     DateTime?
+  // Résultat
+  outcome         String?                            // "PASS", "FAIL", "CONDITIONAL", ou texte libre
+  outcomeNotes    String?        @db.Text            // Notes de résultat détaillées
+  // Assignation
+  assignedToId    String?                            // User responsable de cette activité
+  assignedTo      User?          @relation("ActivityAssignee", fields: [assignedToId], references: [id])
+  // Lien vers l'évaluation technique détaillée (si type = TECHNICAL_EVALUATION)
+  evaluationId    String?        @unique
+  evaluation      TechnicalEvaluation? @relation(fields: [evaluationId], references: [id])
+  // Pièces jointes
+  attachmentUrl   String?
+  attachmentName  String?
+  // Ordre d'affichage (optionnel, pour réordonner les activités)
+  sortOrder       Int            @default(0)
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  applicationId   String
+  application     Application    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  createdById     String?
+  createdBy       User?          @relation("ActivityCreator", fields: [createdById], references: [id])
+
+  @@index([applicationId, status])
+  @@map("application_activities")
 }
 
 // ─────────────────────────────────────────────
@@ -748,6 +814,9 @@ model TechnicalEvaluation {
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+
+  // Reverse relation to activity
+  activity        ApplicationActivity?
 
   @@index([applicationId])
   @@index([evaluatorId])

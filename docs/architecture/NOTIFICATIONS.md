@@ -43,15 +43,16 @@ Le système de notifications est **multi-canal** (in-app + email), **configurabl
 | `application_stage_changed` | Candidature avance dans le pipeline | Recruteur assigné | "{{candidateName}} passe à l'étape {{newStage}}" |
 | `application_rejected` | Candidature rejetée | Candidat (si portail actif) | "Mise à jour de votre candidature" |
 
-### Évaluations Techniques
+### Évaluations & Activités de Qualification
 
 | Type d'événement | Déclencheur | Destinataires | Template titre |
 |---|---|---|---|
-| `evaluation_assigned` | Expert Technique assigné à une candidature | Expert Technique | "Évaluation à réaliser : {{candidateName}} pour {{missionTitle}}" |
-| `evaluation_submitted` | Expert soumet son évaluation | Recruteur + Responsable Recrutement | "Évaluation terminée : {{candidateName}} — {{verdict}}" |
+| `activity_assigned` | Activité assignée à un utilisateur | L'assigné | "Activité assignée : {{activityTitle}} pour {{candidateName}}" |
+| `activity_completed` | Activité complétée | Recruteur + Responsable | "Activité terminée : {{activityTitle}} — {{outcome}}" |
+| `activity_overdue` | Activité non complétée après deadline | L'assigné + Responsable | "Rappel : activité en retard pour {{candidateName}}" |
+| `evaluation_submitted` | Expert soumet son évaluation détaillée | Recruteur + Responsable Recrutement | "Évaluation terminée : {{candidateName}} — {{verdict}}" |
 | `evaluation_verdict_positive` | Verdict YES ou STRONG_YES | Recruteur assigné | "✅ {{candidateName}} validé techniquement pour {{missionTitle}}" |
 | `evaluation_verdict_negative` | Verdict NO ou STRONG_NO | Recruteur assigné | "❌ {{candidateName}} non retenu techniquement" |
-| `evaluation_overdue` | Évaluation non soumise après X jours | Expert Technique + Responsable | "Rappel : évaluation en attente pour {{candidateName}}" |
 
 ### Matching IA
 
@@ -120,7 +121,8 @@ Chaque utilisateur configure ses préférences dans ses paramètres :
 ┌─────────────────────────────────┬─────────┬─────────┐
 │ Événement                       │ In-App  │ Email   │
 ├─────────────────────────────────┼─────────┼─────────┤
-│ Évaluation assignée             │   ✅    │   ✅    │
+│ Activité assignée               │   ✅    │   ✅    │
+│ Activité complétée              │   ✅    │   ❌    │
 │ Évaluation terminée             │   ✅    │   ✅    │
 │ Match fort détecté              │   ✅    │   ❌    │
 │ Nouvelle candidature            │   ✅    │   ❌    │

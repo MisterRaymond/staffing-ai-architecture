@@ -11,23 +11,24 @@ sequenceDiagram
 
     Note over U,EMAIL: ═══ DÉCLENCHEMENT : Expert Technique assigné ═══
 
-    U->>APP: Assigner Ahmed comme Expert Technique<br/>sur la candidature de Jean Dupont
-    APP->>API: POST /api/applications/:id/assign-evaluator<br/>{evaluatorId: "ahmed_id"}
+    U->>APP: Créer activité "Évaluation technique"<br/>assignée à Ahmed
+    APP->>API: POST /api/applications/:id/activities<br/>{type: "TECHNICAL_EVALUATION", assignedToId: "ahmed_id"}
 
-    API->>DB: UPDATE Application SET stage = TECHNICAL_EVALUATION
-    API->>NS: emit("evaluation_assigned", {<br/>  evaluatorId, candidateName,<br/>  missionTitle, applicationId<br/>})
+    API->>DB: INSERT ApplicationActivity
+    API->>DB: UPDATE Application SET stage = QUALIFYING
+    API->>NS: emit("activity_assigned", {<br/>  assigneeId, activityType, candidateName,<br/>  missionTitle, applicationId<br/>})
 
     Note over NS: ═══ RÉSOLUTION ═══
 
-    NS->>DB: Charger NotificationTemplate<br/>WHERE eventType = "evaluation_assigned"
+    NS->>DB: Charger NotificationTemplate<br/>WHERE eventType = "activity_assigned"
     DB-->>NS: Template : titre + message + canaux par défaut
 
     NS->>NS: Résoudre les destinataires<br/>→ Ahmed (Expert Technique)
 
-    NS->>DB: Charger NotificationPreference<br/>WHERE userId = ahmed AND eventType = "evaluation_assigned"
+    NS->>DB: Charger NotificationPreference<br/>WHERE userId = ahmed AND eventType = "activity_assigned"
     DB-->>NS: Préférences Ahmed : inApp=true, email=true
 
-    NS->>NS: Remplir le template avec les variables<br/>titre = "Évaluation à réaliser : Jean Dupont<br/>pour Dev Java Senior - BNP"
+    NS->>NS: Remplir le template avec les variables<br/>titre = "Activité assignée : Évaluation technique Java<br/>pour Jean Dupont — Mission Dev Java Senior BNP"
 
     Note over NS: ═══ DISPATCH MULTI-CANAL ═══
 
@@ -68,41 +69,42 @@ graph LR
     subgraph "Événements Pipeline"
         E1["Candidature créée"]
         E2["Étape changée"]
-        E3["Expert assigné"]
-        E4["Évaluation soumise"]
-        E5["Candidature rejetée"]
+        E3["Activité assignée"]
+        E4["Activité complétée"]
+        E5["Évaluation soumise"]
+        E6["Candidature rejetée"]
     end
 
     subgraph "Événements Mission"
-        E6["Mission créée"]
-        E7["Mission pourvue"]
-        E8["Fin de mission < 30j"]
-        E9["Mission terminée"]
+        E7["Mission créée"]
+        E8["Mission pourvue"]
+        E9["Fin de mission < 30j"]
+        E10["Mission terminée"]
     end
 
     subgraph "Événements IA"
-        E10["Strong match détecté"]
-        E11["Matching batch terminé"]
-        E12["CV parsé"]
+        E11["Strong match détecté"]
+        E12["Matching batch terminé"]
+        E13["CV parsé"]
     end
 
     subgraph "Événements Vivier"
-        E13["Candidat froid 90j+"]
-        E14["Candidat de nouveau dispo"]
+        E14["Candidat froid 90j+"]
+        E15["Candidat de nouveau dispo"]
     end
 
     subgraph "Événements Finance"
-        E15["Marge faible"]
-        E16["Intercontrat > Xj"]
+        E16["Marge faible"]
+        E17["Intercontrat > Xj"]
     end
 
     NS["NotificationService.emit()"]
 
-    E1 & E2 & E3 & E4 & E5 --> NS
-    E6 & E7 & E8 & E9 --> NS
-    E10 & E11 & E12 --> NS
-    E13 & E14 --> NS
-    E15 & E16 --> NS
+    E1 & E2 & E3 & E4 & E5 & E6 --> NS
+    E7 & E8 & E9 & E10 --> NS
+    E11 & E12 & E13 --> NS
+    E14 & E15 --> NS
+    E16 & E17 --> NS
 
     NS --> RESOLVE["Résoudre destinataires"]
     RESOLVE --> PREFS["Vérifier préférences"]

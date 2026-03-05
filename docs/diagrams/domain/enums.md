@@ -78,15 +78,34 @@ classDiagram
         <<enumeration>>
         NEW
         PRESELECTED
-        TECHNICAL_EVALUATION
-        CONDITIONAL_HOLD
-        INTERNAL_INTERVIEW
+        QUALIFYING
         PROPOSED_TO_CLIENT
         CLIENT_INTERVIEW
         VALIDATED
         ON_MISSION
         REJECTED
         CANCELLED
+    }
+
+    class ActivityType {
+        <<enumeration>>
+        TECHNICAL_EVALUATION
+        INTERNAL_INTERVIEW
+        TECHNICAL_TEST
+        REFERENCE_CHECK
+        SALARY_NEGOTIATION
+        DOCUMENT_COLLECTION
+        CLIENT_PRESCREEN
+        OTHER
+    }
+
+    class ActivityStatus {
+        <<enumeration>>
+        PENDING
+        IN_PROGRESS
+        COMPLETED
+        CANCELLED
+        OVERDUE
     }
 
     class EvaluationVerdict {

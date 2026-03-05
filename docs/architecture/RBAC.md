@@ -96,11 +96,19 @@ Exemple : le rôle "Recruteur" a la permission `candidates:read` avec scope `tea
 | Code | Nom | Description |
 |------|-----|-------------|
 | `pipeline:read` | Voir le pipeline | Vue Kanban des candidatures |
-| `pipeline:manage` | Gérer le pipeline | Avancer/reculer les étapes |
+| `pipeline:manage` | Gérer le pipeline | Avancer/reculer les étapes, créer/gérer des activités |
 | `pipeline:reject` | Rejeter un candidat | Rejeter avec catégorisation |
 | `pipeline:propose` | Proposer au client | Passer à l'étape "Proposé au client" |
 | `pipeline:validate` | Valider un placement | Valider la candidature finale |
-| `pipeline:assign_evaluator` | Assigner un évaluateur | Assigner un Expert Technique à une candidature |
+
+### Module : Activités de qualification (`activities`)
+
+| Code | Nom | Description |
+|------|-----|-------------|
+| `activities:create` | Créer une activité | Ajouter une activité à une candidature (éval, entretien, test...) |
+| `activities:read` | Voir les activités | Consulter les activités d'une candidature |
+| `activities:update` | Compléter une activité | Remplir le résultat d'une activité qui lui est assignée |
+| `activities:manage` | Gérer toutes les activités | Modifier/supprimer n'importe quelle activité |
 
 ### Module : Évaluations techniques (`evaluations`)
 
@@ -206,6 +214,7 @@ Toutes les permissions avec scope `all`. Non supprimable.
 | `pool:*` | `team` |
 | `missions:create`, `missions:read`, `missions:update` | `team` |
 | `pipeline:*` | `team` |
+| `activities:*` | `team` |
 | `matching:*` | `team` |
 | `job_descriptions:*` | `team` |
 | `evaluations:read_all` | `team` |
@@ -222,7 +231,8 @@ Toutes les permissions avec scope `all`. Non supprimable.
 | `candidates:parse_cv` | `team` |
 | `pool:read`, `pool:reactivate`, `pool:tag` | `team` |
 | `missions:read` | `team` |
-| `pipeline:read`, `pipeline:manage`, `pipeline:reject`, `pipeline:assign_evaluator` | `own` |
+| `pipeline:read`, `pipeline:manage`, `pipeline:reject` | `own` |
+| `activities:create`, `activities:read`, `activities:update` | `team` |
 | `matching:launch`, `matching:read` | `team` |
 | `job_descriptions:read` | `team` |
 | `evaluations:read_all` | `team` |
@@ -236,12 +246,13 @@ Toutes les permissions avec scope `all`. Non supprimable.
 | `missions:read` | `team` |
 | `job_descriptions:read` | `team` |
 | `pipeline:read` | `team` |
+| `activities:read`, `activities:update` | `own` |
 | `evaluations:create` | `own` |
 | `evaluations:read` | `own` |
 | `evaluations:update` | `own` |
 | `matching:read` | `team` |
 
-L'Expert Technique voit les profils et les fiches de poste pour comprendre le contexte, puis remplit ses évaluations. Il ne peut modifier que ses propres évaluations (scope `own`). Il ne gère ni le pipeline, ni les finances, ni les clients.
+L'Expert Technique voit les activités qui lui sont assignées, complète ses évaluations, et consulte les profils et fiches de poste pour contexte. Il ne crée pas d'activités ni ne gère le pipeline.
 
 ### Chargé de Recrutement (`hierarchy: 30`)
 | Permissions | Scope |
