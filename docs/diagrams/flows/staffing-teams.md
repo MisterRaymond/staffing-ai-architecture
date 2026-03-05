@@ -1,90 +1,106 @@
-# Staffing Teams Organization
+# Staffing Teams — Organisation & Rôles
 
 ```mermaid
 graph TB
     subgraph ORG["🏢 Organisation ESN — TechStaff Consulting"]
         
-        subgraph MGMT["👑 Direction"]
-            VP["VP Staffing<br/>Marie Directrice<br/>ManagerLevel: VP"]
-            DIR1["Directeur Delivery<br/>Paul Manager<br/>ManagerLevel: DIRECTOR"]
+        subgraph DIRECTION["📌 Filière Direction"]
+            VP["👑 VP Staffing / Delivery<br/>Marie Directrice<br/>────────────<br/>Stratégie globale<br/>KPIs, CA, Taux intercontrat<br/>Décide ouverture/fermeture de pôles"]
+            DIR1["📋 Directeur de Projet Delivery<br/>Paul Manager<br/>────────────<br/>Supervise plusieurs pôles<br/>Arbitrage inter-équipes<br/>Relation grands comptes"]
         end
 
-        subgraph POLE_BNP["🏦 Équipe dédiée BNP"]
-            LEAD_BNP["Team Lead BNP<br/>Thomas Coord<br/>ManagerLevel: TEAM_LEAD"]
-
-            subgraph POOL_BNP["Vivier BNP"]
-                C_BNP1["👤 Pierre V. — Fullstack<br/>🔥 Ex-BNP, connait l'environnement"]
-                C_BNP2["👤 Julie F. — QA Automation<br/>🟡 poolScore: 3"]
-            end
-
-            REC_BNP1["Recruteur BNP 1"]
-            REC_BNP2["Recruteur BNP 2"]
+        subgraph DELIVERY["📌 Filière Delivery — orientée Client"]
+            DM_BNP["🏦 Chef de Projet Delivery BNP<br/>Thomas Coord<br/>────────────<br/>Responsable relation client BNP<br/>Qualité des prestations<br/>Renouvellements, négociation TJM<br/>Même autorité qu'un Directeur<br/>mais scopée à son client"]
         end
 
-        subgraph POLE_DATA["📊 Pôle Data"]
-            LEAD_DATA["Senior Manager Data<br/>Laura Chef<br/>ManagerLevel: SENIOR_MANAGER"]
+        subgraph RECRUTEMENT["📌 Filière Recrutement — orientée Candidat"]
             
-            subgraph POOL_DATA["Vivier Data"]
-                C_DATA1["👤 Alex R. — Data Engineer<br/>🔥 poolScore: 4"]
-                C_DATA2["👤 Nadia K. — ML Engineer<br/>🟡 poolScore: 3"]
+            subgraph POLE_JAVA["☕ Pôle Java/JEE"]
+                RL_JAVA["👔 Responsable Recrutement Java<br/>Ahmed<br/>────────────<br/>Pilote le pôle Java au quotidien<br/>Distribue les missions<br/>Valide les candidats avant client"]
+
+                REC_JAVA1["🎯 Recruteur 1<br/>────────────<br/>Process complet : sourcing<br/>→ entretien → proposition client<br/>→ suivi mission"]
+                REC_JAVA2["🎯 Recruteur 2"]
+
+                CR_JAVA["🔍 Chargé de Recrutement<br/>────────────<br/>Sourcing via outils externes :<br/>SmartRecruiters, LinkedIn Recruiter<br/>Indeed, APEC, Monster...<br/>Alimente le vivier du pôle<br/>Premier filtre des profils"]
             end
 
-            REC_DATA1["Recruteur Data"]
-            SOURCER["Sourceur Data"]
-        end
+            subgraph POLE_DATA["📊 Pôle Data"]
+                RL_DATA["👔 Responsable Recrutement Data<br/>Laura<br/>────────────<br/>Pilote le pôle Data<br/>Négocie TJM profils rares<br/>Autonomie élevée"]
 
-        subgraph POLE_JAVA["☕ Pôle Java/JEE"]
-            LEAD_JAVA["Team Lead Java<br/>Ahmed Recruiter<br/>ManagerLevel: TEAM_LEAD"]
-            
-            subgraph POOL_JAVA["Vivier Java"]
-                C_JAVA1["👤 Jean D. — Java Senior<br/>🔥 poolScore: 5 — Dispo immédiate"]
-                C_JAVA2["👤 Sophie M. — Java/Spring<br/>🟡 poolScore: 3 — Dispo 1 mois"]
-                C_JAVA3["👤 Marc L. — Java/AWS<br/>❄️ poolScore: 1 — Non contacté 4 mois"]
+                REC_DATA1["🎯 Recruteur Data"]
+                CR_DATA["🔍 Chargé de Recrutement Data<br/>────────────<br/>Sourcing spécialisé Data<br/>LinkedIn, SmartRecruiters<br/>Alimente le vivier Data"]
             end
-
-            REC_JAVA1["Recruteur 1"]
-            REC_JAVA2["Recruteur 2"]
         end
     end
 
-    subgraph CLIENTS_SECTION["🏢 Clients"]
+    subgraph CLIENTS["🏢 Clients"]
         direction LR
         BNP["BNP Paribas"]
         SG["Société Générale"]
         AXA["AXA"]
     end
 
+    subgraph OUTILS["🔌 Outils de Sourcing Externes — Futures intégrations"]
+        direction LR
+        SR["SmartRecruiters"]
+        LR["LinkedIn Recruiter"]
+        IND["Indeed"]
+        APEC["APEC"]
+        WTTJ["Welcome to the Jungle"]
+    end
+
     VP --> DIR1
-    DIR1 --> LEAD_BNP
-    DIR1 --> LEAD_DATA
-    DIR1 --> LEAD_JAVA
+    DIR1 --> DM_BNP
+    DIR1 --> RL_JAVA
+    DIR1 --> RL_DATA
 
-    LEAD_BNP --> REC_BNP1
-    LEAD_BNP --> REC_BNP2
-    LEAD_DATA --> REC_DATA1
-    LEAD_DATA --> SOURCER
-    LEAD_JAVA --> REC_JAVA1
-    LEAD_JAVA --> REC_JAVA2
+    RL_JAVA --> REC_JAVA1
+    RL_JAVA --> REC_JAVA2
+    RL_JAVA --> CR_JAVA
+    RL_DATA --> REC_DATA1
+    RL_DATA --> CR_DATA
 
-    POLE_BNP -.->|"Dédié à"| BNP
+    DM_BNP -.->|"Responsable delivery"| BNP
     POLE_JAVA -.->|"Missions pour"| SG
-    POLE_JAVA -.->|"Missions pour"| AXA
-    POLE_DATA -.->|"Missions pour"| BNP
+    POLE_JAVA -.->|"Missions pour"| BNP
     POLE_DATA -.->|"Missions pour"| AXA
+    POLE_DATA -.->|"Missions pour"| BNP
+
+    CR_JAVA -.->|"Importe CVs qualifiés"| SR
+    CR_JAVA -.->|"Importe CVs qualifiés"| LR
+    CR_DATA -.->|"Importe CVs qualifiés"| SR
+    CR_DATA -.->|"Importe CVs qualifiés"| IND
 ```
 
-## Modes d'organisation
+## Les deux filières d'une ESN
 
-Un Staffing Team (Pôle) peut être organisé de deux façons :
+### Filière Delivery (orientée client)
 
-### Par spécialisation technique
-- **Pôle Java/JEE** : tous les recruteurs spécialisés Java, vivier de candidats Java
-- **Pôle Data** : Data Engineers, Data Scientists, ML Engineers
-- **Pôle DevOps/Cloud** : profils infra, CI/CD, cloud
+| Rôle | Responsabilité | Dans le SaaS |
+|------|---------------|-------------|
+| **VP Staffing** | Stratégie globale, KPIs, ouverture/fermeture de pôles | Dashboard financier consolidé, métriques globales |
+| **Directeur Delivery** | Supervise plusieurs pôles, arbitrage, grands comptes | Vue multi-pôles, rapports inter-équipes |
+| **Chef de Projet Delivery** | Responsable relation client, qualité des prestations, renouvellements. Même autorité qu'un Directeur mais scopée à son/ses client(s) | Vue missions de son client, suivi placements, financier par client |
 
-### Par client dédié
-- **Équipe BNP** : recruteurs dédiés à BNP, tous profils confondus
-- **Équipe SocGen** : idem pour Société Générale
+### Filière Recrutement (orientée candidat)
 
-### Mode hybride
-Les deux modes coexistent. Un candidat peut appartenir à plusieurs pôles (ex: un profil Java qui est aussi dans le vivier BNP).
+| Rôle | Responsabilité | Dans le SaaS |
+|------|---------------|-------------|
+| **Responsable Recrutement** | Pilote un pôle, distribue les missions, valide les candidats avant proposition client | Dashboard du pôle, vivier, pipeline, matching IA |
+| **Recruteur** | Process complet bout en bout : qualification, entretiens, proposition client, suivi | Pipeline Kanban, matching IA, suivi candidatures |
+| **Chargé de Recrutement** | Sourcing candidats via outils externes, alimentation du vivier, premier filtre | Upload CVs en masse, connexion outils sourcing, tags, vivier |
+
+### Croisement des filières
+
+Le Chef de Projet Delivery BNP (Thomas) et le Responsable Recrutement Java (Ahmed) travaillent ensemble : Thomas définit les besoins clients BNP, Ahmed fournit les candidats Java depuis son pôle. Quand BNP a besoin d'un profil Data, Thomas travaille avec le Pôle Data de Laura.
+
+## Futures intégrations sourcing
+
+Les Chargés de Recrutement utilisent des outils externes pour sourcer. Le SaaS doit à terme s'intégrer avec ces plateformes pour :
+
+- **Import automatique** des CVs qualifiés par les chargés de recrutement
+- **Sync bidirectionnel** des statuts candidats
+- **Dédoublonnage** automatique (un même candidat sur plusieurs plateformes)
+- **Traçabilité** de la source de chaque candidat
+
+Plateformes ciblées pour intégration : SmartRecruiters, LinkedIn Recruiter, Indeed, APEC, Monster, Welcome to the Jungle.

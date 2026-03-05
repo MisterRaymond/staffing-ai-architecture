@@ -42,16 +42,17 @@ Aucun serveur à gérer :
 
 | Module | Description | Priorité MVP |
 |--------|-------------|:---:|
-| **Auth & Multi-Tenant** | Inscription, login, résolution tenant, rôles, niveaux managers | P0 |
-| **Staffing Teams** | Pôles par techno ou par client, hiérarchie managers, affectation recruteurs | P0 |
+| **Auth & Multi-Tenant** | Inscription, login, résolution tenant, rôles (delivery + recrutement) | P0 |
+| **Staffing Teams** | Pôles par techno ou par client, filière delivery + recrutement, affectation membres | P0 |
 | **Gestion Candidats** | CRUD, upload CV, parsing IA | P0 |
 | **Vivier / Talent Pool** | Réinjection des rejetés, tags, score chaleur, historique, recherche | P0 |
 | **Gestion Missions** | CRUD, skills requis, statuts, affectation à un pôle | P0 |
 | **Upload Fiche de Poste** | Upload appel d'offre client, parsing IA, extraction critères | P0 |
 | **Matching IA** | Scoring basé sur fiche de poste ↔ CV + historique vivier, ranking | P0 |
-| **Pipeline Recrutement** | Kanban, suivi des étapes, notes, catégorisation des rejets | P1 |
+| **Pipeline Recrutement** | Kanban, suivi des étapes, catégorisation des rejets | P1 |
 | **Module Financier** | Rentabilité, marges, simulations | P0 |
 | **Super Admin** | Gestion tenants, billing, monitoring | P1 |
+| **Intégrations Sourcing** | SmartRecruiters, LinkedIn Recruiter, Indeed, APEC — import CVs qualifiés | P2 |
 | **Espace Candidat** | Portail candidat, postulation, suivi | P2 |
 | **Notifications** | Alertes in-app, emails automatiques | P2 |
 | **Reporting** | Exports, graphiques, KPIs avancés | P2 |

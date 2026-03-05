@@ -21,18 +21,19 @@ classDiagram
         <<enumeration>>
         SUPER_ADMIN
         ADMIN
+        DELIVERY_MANAGER
+        RECRUITMENT_LEAD
         RECRUITER
-        MANAGER
-        DIRECTOR
+        SOURCING_OFFICER
         VIEWER
     }
 
-    class ManagerLevel {
+    class ManagementLevel {
         <<enumeration>>
-        TEAM_LEAD
-        SENIOR_MANAGER
-        DIRECTOR
         VP
+        DIRECTOR
+        DELIVERY_MANAGER
+        TEAM_LEAD
     }
 
     class PoolStatus {
@@ -42,6 +43,21 @@ classDiagram
         ON_MISSION
         BLACKLISTED
         DO_NOT_CONTACT
+    }
+
+    class CandidateSource {
+        <<enumeration>>
+        MANUAL_IMPORT
+        SMART_RECRUITERS
+        LINKEDIN_RECRUITER
+        INDEED
+        MONSTER
+        WELCOME_TO_JUNGLE
+        APEC
+        JOBBOARD_OTHER
+        REFERRAL
+        INBOUND
+        CAREER_SITE
     }
 
     class MissionStatus {

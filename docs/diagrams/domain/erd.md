@@ -9,6 +9,7 @@ erDiagram
     Organization ||--o{ Mission : "ouvre"
     Organization ||--o{ Placement : "réalise"
     Organization ||--o{ Application : "contient"
+    Organization ||--o{ SourcingIntegration : "connecte outils"
     Organization ||--o{ AuditLog : "journalise"
 
     Client ||--o{ Mission : "commande"
@@ -63,8 +64,8 @@ erDiagram
         string firstName "NOT NULL"
         string lastName "NOT NULL"
         string avatar "URL nullable"
-        enum role "ADMIN | RECRUITER | MANAGER | DIRECTOR | VIEWER"
-        enum managerLevel "nullable — TEAM_LEAD | SENIOR_MANAGER | DIRECTOR | VP"
+        enum role "ADMIN | DELIVERY_MANAGER | RECRUITMENT_LEAD | RECRUITER | SOURCING_OFFICER | VIEWER"
+        enum managementLevel "nullable — VP | DIRECTOR | DELIVERY_MANAGER | TEAM_LEAD"
         string organizationId FK "NOT NULL"
         datetime lastLoginAt "nullable"
         datetime createdAt "default now()"
@@ -87,7 +88,9 @@ erDiagram
         enum preferredContract "CDI | CDD | FREELANCE | PORTAGE"
         enum preferredRemote "ON_SITE | HYBRID | FULL_REMOTE"
         string linkedinUrl "nullable"
-        string source "Origine du candidat"
+        enum source "MANUAL_IMPORT | SMART_RECRUITERS | LINKEDIN_RECRUITER | INDEED | etc."
+        string sourceDetail "nullable — Détail libre"
+        string importedFromTool "nullable — ID externe dans outil source"
         text notes "nullable"
         enum poolStatus "IN_POOL | ACTIVE_PROCESS | ON_MISSION | BLACKLISTED | DO_NOT_CONTACT"
         text poolNotes "nullable — Notes vivier"
@@ -311,6 +314,22 @@ erDiagram
         text notes "nullable"
         string performedById "nullable"
         string candidateId FK "NOT NULL"
+        datetime createdAt "default now()"
+    }
+
+    SourcingIntegration {
+        string id PK "cuid()"
+        enum provider "SMART_RECRUITERS | LINKEDIN_RECRUITER | INDEED | etc."
+        string name "NOT NULL — Nom affiché"
+        boolean isActive "default true"
+        string apiKey "nullable — chiffré"
+        string apiUrl "nullable"
+        string webhookUrl "nullable — réception CVs"
+        json settings "Config spécifique provider"
+        datetime lastSyncAt "nullable"
+        string syncFrequency "nullable — realtime | hourly | daily"
+        int candidatesImported "default 0"
+        string organizationId FK "NOT NULL — UNIQUE avec provider"
         datetime createdAt "default now()"
     }
 

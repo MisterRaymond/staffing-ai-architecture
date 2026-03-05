@@ -31,19 +31,20 @@ enum OrgStatus {
 }
 
 enum UserRole {
-  SUPER_ADMIN
-  ADMIN
-  RECRUITER
-  MANAGER
-  DIRECTOR
-  VIEWER
+  SUPER_ADMIN       // Provider du SaaS
+  ADMIN             // Admin de l'ESN (tenant)
+  DELIVERY_MANAGER  // Chef de Projet Delivery — responsable client
+  RECRUITMENT_LEAD  // Responsable Recrutement — gère une équipe de recruteurs
+  RECRUITER         // Recruteur — gère le process candidat bout en bout
+  SOURCING_OFFICER  // Chargé de Recrutement — sourcing via outils externes
+  VIEWER            // Lecture seule
 }
 
-enum ManagerLevel {
-  TEAM_LEAD        // Responsable d'une équipe de recruteurs
-  SENIOR_MANAGER   // Gère plusieurs équipes / clients
-  DIRECTOR         // Directeur de pôle / BU
-  VP               // VP Staffing / Delivery
+enum ManagementLevel {
+  VP                 // VP Staffing / Delivery — stratégie globale
+  DIRECTOR           // Directeur de pôle — supervise plusieurs équipes
+  DELIVERY_MANAGER   // Chef de Projet Delivery — responsable client(s)
+  TEAM_LEAD          // Responsable d'équipe recrutement
 }
 
 enum PoolStatus {
@@ -52,6 +53,20 @@ enum PoolStatus {
   ON_MISSION        // Actuellement en mission
   BLACKLISTED       // Ne plus contacter
   DO_NOT_CONTACT    // Demande du candidat
+}
+
+enum CandidateSource {
+  MANUAL_IMPORT       // Upload direct dans le SaaS
+  SMART_RECRUITERS    // Import SmartRecruiters
+  LINKEDIN_RECRUITER  // Import LinkedIn Recruiter
+  INDEED              // Import Indeed
+  MONSTER             // Import Monster
+  WELCOME_TO_JUNGLE   // Import WTTJ
+  APEC                // Import APEC
+  JOBBOARD_OTHER      // Autre jobboard
+  REFERRAL            // Cooptation
+  INBOUND             // Candidature spontanée
+  CAREER_SITE         // Site carrière de l'ESN
 }
 
 enum MissionStatus {
@@ -177,8 +192,9 @@ model Organization {
   missions       Mission[]
   placements     Placement[]
   applications   Application[]
-  staffingTeams  StaffingTeam[]
-  auditLogs      AuditLog[]
+  staffingTeams        StaffingTeam[]
+  sourcingIntegrations SourcingIntegration[]
+  auditLogs            AuditLog[]
 
   @@map("organizations")
 }
@@ -188,17 +204,17 @@ model Organization {
 // ─────────────────────────────────────────────
 
 model User {
-  id             String        @id @default(cuid())
-  clerkId        String        @unique
-  email          String        @unique
-  firstName      String
-  lastName       String
-  avatar         String?
-  role           UserRole      @default(RECRUITER)
-  managerLevel   ManagerLevel? // Null si pas manager
-  lastLoginAt    DateTime?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id                String            @id @default(cuid())
+  clerkId           String            @unique
+  email             String            @unique
+  firstName         String
+  lastName          String
+  avatar            String?
+  role              UserRole          @default(RECRUITER)
+  managementLevel   ManagementLevel?  // Null si pas manager/directeur
+  lastLoginAt       DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   // Relations
   organizationId String
@@ -257,7 +273,7 @@ model StaffingTeam {
 
 model StaffingTeamMember {
   id        String   @id @default(cuid())
-  role      String   @default("RECRUITER") // RECRUITER, SOURCER, COORDINATOR
+  role      String   @default("RECRUITER") // DELIVERY_MANAGER, RECRUITMENT_LEAD, RECRUITER, SOURCING_OFFICER
   joinedAt  DateTime @default(now())
 
   userId String
@@ -292,7 +308,10 @@ model Candidate {
   preferredRemote      RemotePolicy?
   seniorityEstimate    Seniority?
   linkedinUrl          String?
-  source               String?
+  source               CandidateSource @default(MANUAL_IMPORT)
+  sourceDetail         String?                          // Détail libre (ex: "LinkedIn post du 12/03")
+  sourcedById          String?                          // Chargé de recrutement qui a sourcé
+  importedFromTool     String?                          // ID externe dans l'outil source
   notes                String?       @db.Text
   // ── Vivier / Talent Pool ──
   poolStatus           PoolStatus    @default(IN_POOL)
@@ -691,6 +710,35 @@ model FinancialRecord {
   @@unique([placementId, month])
   @@index([placementId])
   @@map("financial_records")
+}
+
+// ─────────────────────────────────────────────
+// SOURCING INTEGRATION (Connexions outils externes)
+// ─────────────────────────────────────────────
+
+model SourcingIntegration {
+  id              String          @id @default(cuid())
+  provider        CandidateSource                   // SMART_RECRUITERS, LINKEDIN_RECRUITER, etc.
+  name            String                             // Nom affiché (ex: "SmartRecruiters - Compte Prod")
+  isActive        Boolean         @default(true)
+  apiKey          String?                            // Clé API chiffrée
+  apiUrl          String?                            // URL de l'API du provider
+  webhookUrl      String?                            // URL du webhook pour réception de CVs
+  webhookSecret   String?                            // Secret pour valider les webhooks
+  settings        Json            @default("{}")     // Config spécifique au provider
+  lastSyncAt      DateTime?                          // Dernier sync réussi
+  syncFrequency   String?                            // "realtime", "hourly", "daily"
+  candidatesImported Int          @default(0)        // Compteur total de CVs importés
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@index([organizationId])
+  @@map("sourcing_integrations")
 }
 
 // ─────────────────────────────────────────────

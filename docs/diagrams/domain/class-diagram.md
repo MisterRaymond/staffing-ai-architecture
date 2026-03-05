@@ -21,12 +21,13 @@ classDiagram
         +String firstName
         +String lastName
         +UserRole role
-        +ManagerLevel managerLevel
+        +ManagementLevel managementLevel
         +String organizationId
         +DateTime lastLoginAt
         --
         +hasPermission(action) Boolean
-        +isManager() Boolean
+        +isDeliveryTrack() Boolean
+        +isRecruitmentTrack() Boolean
         +getManagedTeams() StaffingTeam[]
     }
 
@@ -67,6 +68,8 @@ classDiagram
         +Availability availability
         +Decimal desiredTJM
         +Seniority seniorityEstimate
+        +CandidateSource source
+        +String importedFromTool
         +PoolStatus poolStatus
         +String poolNotes
         +DateTime lastContactedAt
@@ -127,6 +130,20 @@ classDiagram
         +DateTime endDate
         +String[] technologies
         +String candidateId
+    }
+
+    class SourcingIntegration {
+        +String id
+        +CandidateSource provider
+        +String name
+        +Boolean isActive
+        +String apiUrl
+        +String webhookUrl
+        +Json settings
+        +DateTime lastSyncAt
+        +String syncFrequency
+        +Int candidatesImported
+        +String organizationId
     }
 
     class Client {
@@ -230,6 +247,7 @@ classDiagram
     Organization "1" --> "*" Client : a comme client
     Organization "1" --> "*" Mission : ouvre
     Organization "1" --> "*" Placement : réalise
+    Organization "1" --> "*" SourcingIntegration : connecte outils sourcing
 
     StaffingTeam "1" --> "0..1" User : dirigé par (lead)
     StaffingTeam "1" --> "*" StaffingTeamMember : composé de

@@ -10,13 +10,22 @@ Le schéma de données suit une architecture **multi-tenant à base partagée**.
 L'entité racine. Représente une ESN cliente du SaaS. Chaque organization a un `slug` unique qui sert de sous-domaine.
 
 ### User
-Les utilisateurs de l'application, liés à une Organization. Rôles : ADMIN, RECRUITER, MANAGER, DIRECTOR, VIEWER. Les managers ont un `managerLevel` optionnel (TEAM_LEAD, SENIOR_MANAGER, DIRECTOR, VP) qui définit leur rang hiérarchique.
+Les utilisateurs de l'application, liés à une Organization. Il y a **deux filières** :
+
+**Filière Delivery** (orientée client) : `DELIVERY_MANAGER` — Chef de Projet Delivery, responsable de la relation avec un ou plusieurs clients. Même autorité qu'un Directeur mais scopée à ses clients. Gère la qualité des prestations, les renouvellements, la négociation TJM.
+
+**Filière Recrutement** (orientée candidat) : `RECRUITMENT_LEAD` — Responsable Recrutement qui pilote un pôle. `RECRUITER` — Recruteur qui gère le process candidat de bout en bout. `SOURCING_OFFICER` — Chargé de Recrutement qui source les candidats via des outils externes (SmartRecruiters, LinkedIn Recruiter, Indeed...) et alimente le vivier.
+
+Le champ `managementLevel` (optionnel) définit le rang hiérarchique : VP → DIRECTOR → DELIVERY_MANAGER → TEAM_LEAD.
 
 ### StaffingTeam (Pôle / Équipe de recrutement)
-Unité organisationnelle qui regroupe des recruteurs autour d'une spécialisation technique (Pôle Java, Pôle Data) ou d'un client dédié (Équipe BNP). Chaque pôle a un lead (manager), des membres, un vivier de candidats, et des missions. Un pôle peut être lié à un client spécifique (optionnel).
+Unité organisationnelle qui regroupe des membres autour d'une spécialisation technique (Pôle Java, Pôle Data) ou d'un client dédié (Équipe BNP). Chaque pôle a un lead, des membres (recruteurs, chargés de recrutement), un vivier de candidats, et des missions. Un Chef de Projet Delivery peut être lead d'un pôle client.
 
 ### StaffingTeamMember
-Table de liaison entre User et StaffingTeam. Un recruteur peut appartenir à plusieurs pôles. Chaque membre a un rôle dans le pôle (RECRUITER, SOURCER, COORDINATOR).
+Table de liaison entre User et StaffingTeam. Un utilisateur peut appartenir à plusieurs pôles. Chaque membre a un rôle dans le pôle (DELIVERY_MANAGER, RECRUITMENT_LEAD, RECRUITER, SOURCING_OFFICER).
+
+### SourcingIntegration
+Connexion à un outil de sourcing externe. Chaque tenant peut connecter SmartRecruiters, LinkedIn Recruiter, Indeed, etc. L'intégration se fait par API/webhook : les CVs qualifiés par les chargés de recrutement dans l'outil externe sont automatiquement importés dans le SaaS, parsés par l'IA, et ajoutés au vivier avec traçabilité de la source.
 
 ### Candidate
 Les candidats IT gérés par l'ESN. Contient les données extraites du CV par l'IA (`cvParsedData`). **Le champ `poolStatus` gère le cycle de vie dans le vivier** : IN_POOL (disponible), ACTIVE_PROCESS (en cours de process), ON_MISSION (en mission), BLACKLISTED, DO_NOT_CONTACT. Le `poolScore` (1-5) mesure la "chaleur" du candidat (5 = très chaud, contacté récemment). `lastContactedAt` permet de détecter les candidats froids.

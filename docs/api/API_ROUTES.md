@@ -183,6 +183,39 @@
 | POST | `/api/ai/batch-match` | Matching batch (tous candidats pour 1 mission) | Recruiter+ |
 | GET | `/api/ai/usage` | Consommation API IA du tenant | Admin |
 
+## Sourcing Integrations (Outils externes)
+
+| Méthode | Route | Description | Auth |
+|---------|-------|-------------|:---:|
+| GET | `/api/integrations` | Liste des intégrations configurées | Admin |
+| POST | `/api/integrations` | Connecter un outil de sourcing | Admin |
+| PUT | `/api/integrations/:id` | Modifier la configuration | Admin |
+| DELETE | `/api/integrations/:id` | Déconnecter un outil | Admin |
+| POST | `/api/integrations/:id/sync` | Forcer une synchronisation manuelle | Admin |
+| GET | `/api/integrations/:id/status` | Statut de la dernière sync | Admin |
+| POST | `/api/integrations/:id/test` | Tester la connexion | Admin |
+
+### Webhooks sourcing (réception de CVs)
+
+| Source | Route | Description |
+|--------|-------|-------------|
+| SmartRecruiters | `/api/webhooks/smartrecruiters` | Réception de candidats qualifiés |
+| LinkedIn | `/api/webhooks/linkedin` | Import profils LinkedIn Recruiter |
+| Indeed | `/api/webhooks/indeed` | Import candidatures Indeed |
+
+### Flow d'import sourcing
+
+```
+1. Le Chargé de Recrutement qualifie un candidat dans SmartRecruiters
+2. SmartRecruiters envoie un webhook → POST /api/webhooks/smartrecruiters
+3. Le SaaS reçoit le CV + données candidat
+4. Dédoublonnage (email déjà existant dans le tenant ?)
+5. Parsing IA du CV (extraction skills, XP, etc.)
+6. Le candidat est ajouté au vivier avec source = SMART_RECRUITERS
+7. Tags auto-générés + assignation au pôle du chargé de recrutement
+8. Notification au Responsable Recrutement du pôle
+```
+
 ## Super Admin (Provider)
 
 | Méthode | Route | Description | Auth |
