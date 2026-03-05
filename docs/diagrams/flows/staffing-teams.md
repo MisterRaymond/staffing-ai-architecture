@@ -9,74 +9,68 @@ graph TB
             DIR1["Directeur Delivery<br/>Paul Manager<br/>ManagerLevel: DIRECTOR"]
         end
 
+        subgraph POLE_BNP["🏦 Équipe dédiée BNP"]
+            LEAD_BNP["Team Lead BNP<br/>Thomas Coord<br/>ManagerLevel: TEAM_LEAD"]
+
+            subgraph POOL_BNP["Vivier BNP"]
+                C_BNP1["👤 Pierre V. — Fullstack<br/>🔥 Ex-BNP, connait l'environnement"]
+                C_BNP2["👤 Julie F. — QA Automation<br/>🟡 poolScore: 3"]
+            end
+
+            REC_BNP1["Recruteur BNP 1"]
+            REC_BNP2["Recruteur BNP 2"]
+        end
+
+        subgraph POLE_DATA["📊 Pôle Data"]
+            LEAD_DATA["Senior Manager Data<br/>Laura Chef<br/>ManagerLevel: SENIOR_MANAGER"]
+            
+            subgraph POOL_DATA["Vivier Data"]
+                C_DATA1["👤 Alex R. — Data Engineer<br/>🔥 poolScore: 4"]
+                C_DATA2["👤 Nadia K. — ML Engineer<br/>🟡 poolScore: 3"]
+            end
+
+            REC_DATA1["Recruteur Data"]
+            SOURCER["Sourceur Data"]
+        end
+
         subgraph POLE_JAVA["☕ Pôle Java/JEE"]
             LEAD_JAVA["Team Lead Java<br/>Ahmed Recruiter<br/>ManagerLevel: TEAM_LEAD"]
-            REC_JAVA1["Recruteur 1"]
-            REC_JAVA2["Recruteur 2"]
             
             subgraph POOL_JAVA["Vivier Java"]
                 C_JAVA1["👤 Jean D. — Java Senior<br/>🔥 poolScore: 5 — Dispo immédiate"]
                 C_JAVA2["👤 Sophie M. — Java/Spring<br/>🟡 poolScore: 3 — Dispo 1 mois"]
                 C_JAVA3["👤 Marc L. — Java/AWS<br/>❄️ poolScore: 1 — Non contacté 4 mois"]
             end
-        end
 
-        subgraph POLE_DATA["📊 Pôle Data"]
-            LEAD_DATA["Senior Manager Data<br/>Laura Chef<br/>ManagerLevel: SENIOR_MANAGER"]
-            REC_DATA1["Recruteur Data"]
-            SOURCER["Sourceur Data"]
-            
-            subgraph POOL_DATA["Vivier Data"]
-                C_DATA1["👤 Alex R. — Data Engineer<br/>🔥 poolScore: 4"]
-                C_DATA2["👤 Nadia K. — ML Engineer<br/>🟡 poolScore: 3"]
-            end
-        end
-
-        subgraph POLE_BNP["🏦 Équipe dédiée BNP"]
-            LEAD_BNP["Team Lead BNP<br/>Thomas Coord<br/>ManagerLevel: TEAM_LEAD"]
-            REC_BNP1["Recruteur BNP 1"]
-            REC_BNP2["Recruteur BNP 2"]
-            
-            subgraph POOL_BNP["Vivier BNP"]
-                C_BNP1["👤 Pierre V. — Fullstack<br/>🔥 Ex-BNP, connait l'environnement"]
-                C_BNP2["👤 Julie F. — QA Automation<br/>🟡 poolScore: 3"]
-            end
+            REC_JAVA1["Recruteur 1"]
+            REC_JAVA2["Recruteur 2"]
         end
     end
 
-    subgraph CLIENTS["🏢 Clients"]
+    subgraph CLIENTS_SECTION["🏢 Clients"]
+        direction LR
         BNP["BNP Paribas"]
         SG["Société Générale"]
         AXA["AXA"]
     end
 
     VP --> DIR1
-    DIR1 --> LEAD_JAVA
-    DIR1 --> LEAD_DATA
     DIR1 --> LEAD_BNP
+    DIR1 --> LEAD_DATA
+    DIR1 --> LEAD_JAVA
 
-    LEAD_JAVA --> REC_JAVA1
-    LEAD_JAVA --> REC_JAVA2
-    LEAD_DATA --> REC_DATA1
-    LEAD_DATA --> SOURCER
     LEAD_BNP --> REC_BNP1
     LEAD_BNP --> REC_BNP2
+    LEAD_DATA --> REC_DATA1
+    LEAD_DATA --> SOURCER
+    LEAD_JAVA --> REC_JAVA1
+    LEAD_JAVA --> REC_JAVA2
 
     POLE_BNP -.->|"Dédié à"| BNP
     POLE_JAVA -.->|"Missions pour"| SG
     POLE_JAVA -.->|"Missions pour"| AXA
     POLE_DATA -.->|"Missions pour"| BNP
     POLE_DATA -.->|"Missions pour"| AXA
-
-    style POLE_JAVA fill:transparent,stroke:#16a34a,color:#000
-    style POLE_DATA fill:transparent,stroke:#2563eb,color:#000
-    style POLE_BNP fill:transparent,stroke:#d97706,color:#000
-    style POOL_JAVA fill:transparent,stroke:#16a34a,stroke-dasharray:5 5,color:#000
-    style POOL_DATA fill:transparent,stroke:#2563eb,stroke-dasharray:5 5,color:#000
-    style POOL_BNP fill:transparent,stroke:#d97706,stroke-dasharray:5 5,color:#000
-    style ORG fill:transparent,stroke:#6b7280,color:#000
-    style MGMT fill:transparent,stroke:#6b7280,color:#000
-    style CLIENTS fill:transparent,stroke:#6b7280,color:#000
 ```
 
 ## Modes d'organisation

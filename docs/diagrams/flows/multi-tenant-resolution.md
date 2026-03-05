@@ -45,11 +45,4 @@ graph TB
     ADMIN_AUTH -->|"Non"| ADMIN_LOGIN["Redirect → /admin/login"]
     ADMIN_AUTH -->|"Oui"| ADMIN_OK["✅ Dashboard Super Admin"]
 
-    style NOT_FOUND fill:transparent,stroke:#ef4444,stroke-width:3px,color:#000
-    style SUSPENDED fill:transparent,stroke:#f59e0b,stroke-width:3px,color:#000
-    style GONE fill:transparent,stroke:#6b7280,stroke-width:3px,color:#000
-    style FORBIDDEN fill:transparent,stroke:#ef4444,stroke-width:3px,color:#000
-    style RESPONSE fill:transparent,stroke:#22c55e,stroke-width:3px,color:#000
-    style ADMIN_OK fill:transparent,stroke:#22c55e,stroke-width:3px,color:#000
-    style RLS fill:transparent,stroke:#3b82f6,stroke-width:3px,color:#000
 ```

@@ -80,10 +80,4 @@ graph TB
     EXPLAIN --> EXPLANATIONS
     SCORES --> ALERTS
 
-    style JD_PARSE fill:transparent,stroke:#6366f1,stroke-width:3px,color:#000
-    style CV_PARSE fill:transparent,stroke:#6366f1,stroke-width:3px,color:#000
-    style MATCH fill:transparent,stroke:#6366f1,stroke-width:3px,color:#000
-    style JD fill:transparent,stroke:#d97706,stroke-width:2px,color:#000
-    style CV fill:transparent,stroke:#16a34a,stroke-width:2px,color:#000
-    style TAX_DB fill:transparent,stroke:#8b5cf6,stroke-width:2px,color:#000
 ```
