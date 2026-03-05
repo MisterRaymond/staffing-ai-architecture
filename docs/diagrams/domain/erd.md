@@ -3,6 +3,7 @@
 ```mermaid
 erDiagram
     Organization ||--o{ User : "emploie"
+    Organization ||--o{ StaffingTeam : "organise en pôles"
     Organization ||--o{ Candidate : "gère"
     Organization ||--o{ Client : "a comme client"
     Organization ||--o{ Mission : "ouvre"
@@ -11,10 +12,20 @@ erDiagram
     Organization ||--o{ AuditLog : "journalise"
 
     Client ||--o{ Mission : "commande"
+    Client ||--o{ StaffingTeam : "a des pôles dédiés"
+    
+    StaffingTeam ||--o{ StaffingTeamMember : "composé de"
+    StaffingTeam ||--o{ CandidatePool : "vivier"
+    StaffingTeam ||--o{ Mission : "gère"
+
+    User ||--o{ StaffingTeamMember : "membre de"
     Client ||--o{ Placement : "accueille"
     
     Candidate ||--o{ Skill : "possède"
     Candidate ||--o{ Experience : "a vécu"
+    Candidate ||--o{ CandidateTag : "étiqueté"
+    Candidate ||--o{ CandidatePool : "dans les pôles"
+    Candidate ||--o{ CandidatePoolHistory : "historique vivier"
     Candidate ||--o{ Application : "postule"
     Candidate ||--o{ MatchScore : "est évalué"
     Candidate ||--o{ Placement : "est placé"
@@ -52,7 +63,8 @@ erDiagram
         string firstName "NOT NULL"
         string lastName "NOT NULL"
         string avatar "URL nullable"
-        enum role "ADMIN | RECRUITER | MANAGER | VIEWER"
+        enum role "ADMIN | RECRUITER | MANAGER | DIRECTOR | VIEWER"
+        enum managerLevel "nullable — TEAM_LEAD | SENIOR_MANAGER | DIRECTOR | VP"
         string organizationId FK "NOT NULL"
         datetime lastLoginAt "nullable"
         datetime createdAt "default now()"
@@ -77,6 +89,10 @@ erDiagram
         string linkedinUrl "nullable"
         string source "Origine du candidat"
         text notes "nullable"
+        enum poolStatus "IN_POOL | ACTIVE_PROCESS | ON_MISSION | BLACKLISTED | DO_NOT_CONTACT"
+        text poolNotes "nullable — Notes vivier"
+        datetime lastContactedAt "nullable"
+        int poolScore "nullable — 1-5 chaleur"
         string organizationId FK "NOT NULL"
         string createdById FK "User qui a importé"
         datetime createdAt "default now()"
@@ -202,6 +218,8 @@ erDiagram
         enum stage "NEW | PRESELECTED | INTERNAL_INTERVIEW | PROPOSED | CLIENT_INTERVIEW | VALIDATED | ON_MISSION | REJECTED | CANCELLED"
         text notes "nullable"
         string rejectionReason "nullable"
+        string rejectionCategory "nullable — SKILL_GAP | SENIORITY | BUDGET | TIMING | etc."
+        boolean reinjectedToPool "default false"
         datetime interviewDate "nullable"
         string assignedToId FK "Recruteur assigné"
         string organizationId FK "NOT NULL"
@@ -239,6 +257,60 @@ erDiagram
         decimal margeBrute "COMPUTED: CA - Coût"
         decimal margeNette "COMPUTED: margeBrute - fraisGestion"
         decimal tauxMarge "COMPUTED: margeNette / CA x 100"
+        datetime createdAt "default now()"
+    }
+
+    StaffingTeam {
+        string id PK "cuid()"
+        string name "NOT NULL — Ex: Pôle Java"
+        text description "nullable"
+        string specialization "nullable — Ex: Java/JEE"
+        string color "nullable — couleur UI"
+        boolean isActive "default true"
+        string organizationId FK "NOT NULL"
+        string leadId FK "nullable — Manager du pôle"
+        string clientId FK "nullable — Client dédié"
+        datetime createdAt "default now()"
+    }
+
+    StaffingTeamMember {
+        string id PK "cuid()"
+        string role "default RECRUITER"
+        datetime joinedAt "default now()"
+        string userId FK "NOT NULL"
+        string staffingTeamId FK "NOT NULL"
+    }
+
+    CandidateTag {
+        string id PK "cuid()"
+        string name "NOT NULL — Ex: Java Senior"
+        string color "nullable"
+        string candidateId FK "NOT NULL"
+        string organizationId FK "NOT NULL"
+    }
+
+    CandidatePool {
+        string id PK "cuid()"
+        datetime addedAt "default now()"
+        string addedBy "nullable — userId"
+        text notes "nullable"
+        string candidateId FK "NOT NULL"
+        string staffingTeamId FK "NOT NULL"
+    }
+
+    CandidatePoolHistory {
+        string id PK "cuid()"
+        string action "ADDED | REJECTED | REACTIVATED | CONTACTED | BLACKLISTED"
+        string fromMissionId "nullable"
+        string fromMissionTitle "nullable"
+        string rejectionReason "nullable"
+        string rejectionCategory "nullable — SKILL_GAP | SENIORITY | BUDGET | TIMING | etc."
+        boolean reinjectedToPool "default false"
+        enum previousPoolStatus "nullable"
+        enum newPoolStatus "nullable"
+        text notes "nullable"
+        string performedById "nullable"
+        string candidateId FK "NOT NULL"
         datetime createdAt "default now()"
     }
 

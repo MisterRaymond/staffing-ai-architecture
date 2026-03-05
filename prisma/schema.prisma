@@ -35,7 +35,23 @@ enum UserRole {
   ADMIN
   RECRUITER
   MANAGER
+  DIRECTOR
   VIEWER
+}
+
+enum ManagerLevel {
+  TEAM_LEAD        // Responsable d'une équipe de recruteurs
+  SENIOR_MANAGER   // Gère plusieurs équipes / clients
+  DIRECTOR         // Directeur de pôle / BU
+  VP               // VP Staffing / Delivery
+}
+
+enum PoolStatus {
+  IN_POOL           // Disponible dans le vivier pour futures missions
+  ACTIVE_PROCESS    // En cours de process sur une mission
+  ON_MISSION        // Actuellement en mission
+  BLACKLISTED       // Ne plus contacter
+  DO_NOT_CONTACT    // Demande du candidat
 }
 
 enum MissionStatus {
@@ -155,13 +171,14 @@ model Organization {
   updatedAt              DateTime  @updatedAt
 
   // Relations
-  users       User[]
-  candidates  Candidate[]
-  clients     Client[]
-  missions    Mission[]
-  placements  Placement[]
-  applications Application[]
-  auditLogs   AuditLog[]
+  users          User[]
+  candidates     Candidate[]
+  clients        Client[]
+  missions       Mission[]
+  placements     Placement[]
+  applications   Application[]
+  staffingTeams  StaffingTeam[]
+  auditLogs      AuditLog[]
 
   @@map("organizations")
 }
@@ -171,20 +188,25 @@ model Organization {
 // ─────────────────────────────────────────────
 
 model User {
-  id             String    @id @default(cuid())
-  clerkId        String    @unique
-  email          String    @unique
+  id             String        @id @default(cuid())
+  clerkId        String        @unique
+  email          String        @unique
   firstName      String
   lastName       String
   avatar         String?
-  role           UserRole  @default(RECRUITER)
+  role           UserRole      @default(RECRUITER)
+  managerLevel   ManagerLevel? // Null si pas manager
   lastLoginAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   // Relations
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Staffing Teams
+  ledTeams             StaffingTeam[]   @relation("TeamLead")
+  staffingTeamMembers  StaffingTeamMember[]
 
   createdCandidates Candidate[] @relation("CreatedBy")
   createdMissions   Mission[]   @relation("CreatedBy")
@@ -193,6 +215,59 @@ model User {
 
   @@index([organizationId])
   @@map("users")
+}
+
+// ─────────────────────────────────────────────
+// STAFFING TEAM (Pôle / Équipe de recrutement)
+// ─────────────────────────────────────────────
+
+model StaffingTeam {
+  id            String   @id @default(cuid())
+  name          String                           // Ex: "Pôle Java", "Équipe Data BNP", "Testing Société Générale"
+  description   String?  @db.Text
+  specialization String?                          // Ex: "Java/JEE", "Data Engineering", "QA/Testing"
+  color         String?                           // Couleur UI pour identifier le pôle
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Manager lead du pôle
+  leadId String?
+  lead   User?   @relation("TeamLead", fields: [leadId], references: [id])
+
+  // Client associé (optionnel — un pôle peut être par client ou par techno)
+  clientId String?
+  client   Client? @relation(fields: [clientId], references: [id])
+
+  // Membres du pôle
+  members    StaffingTeamMember[]
+  // Candidats du vivier associés à ce pôle
+  candidates CandidatePool[]
+  // Missions gérées par ce pôle
+  missions   Mission[]
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@map("staffing_teams")
+}
+
+model StaffingTeamMember {
+  id        String   @id @default(cuid())
+  role      String   @default("RECRUITER") // RECRUITER, SOURCER, COORDINATOR
+  joinedAt  DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  staffingTeamId String
+  staffingTeam   StaffingTeam @relation(fields: [staffingTeamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, staffingTeamId])
+  @@map("staffing_team_members")
 }
 
 // ─────────────────────────────────────────────
@@ -219,6 +294,11 @@ model Candidate {
   linkedinUrl          String?
   source               String?
   notes                String?       @db.Text
+  // ── Vivier / Talent Pool ──
+  poolStatus           PoolStatus    @default(IN_POOL)
+  poolNotes            String?       @db.Text      // Notes pour le vivier (pourquoi garder ce profil)
+  lastContactedAt      DateTime?                    // Dernier contact avec le candidat
+  poolScore            Int?                          // Score de "chaleur" 1-5 (5 = très chaud)
   createdAt            DateTime      @default(now())
   updatedAt            DateTime      @updatedAt
 
@@ -229,16 +309,82 @@ model Candidate {
   createdById String?
   createdBy   User?   @relation("CreatedBy", fields: [createdById], references: [id])
 
-  skills       Skill[]
-  experiences  Experience[]
-  applications Application[]
-  matchScores  MatchScore[]
-  placements   Placement[]
+  skills        Skill[]
+  experiences   Experience[]
+  applications  Application[]
+  matchScores   MatchScore[]
+  placements    Placement[]
+  tags          CandidateTag[]         // Tags de catégorisation
+  poolHistory   CandidatePoolHistory[] // Historique dans le vivier
+  pools         CandidatePool[]        // Appartenance aux pôles
 
   @@unique([email, organizationId])
   @@index([organizationId])
   @@index([organizationId, availability])
+  @@index([organizationId, poolStatus])
   @@map("candidates")
+}
+
+// ─────────────────────────────────────────────
+// CANDIDATE TAG (Étiquettes pour le vivier)
+// ─────────────────────────────────────────────
+
+model CandidateTag {
+  id    String @id @default(cuid())
+  name  String // Ex: "Java Senior", "Disponible Q2", "Ex-BNP", "Profil rare"
+  color String? // Couleur UI
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  organizationId String
+
+  @@index([candidateId])
+  @@index([organizationId, name])
+  @@map("candidate_tags")
+}
+
+// ─────────────────────────────────────────────
+// CANDIDATE POOL (Appartenance à un Staffing Team / Pôle)
+// ─────────────────────────────────────────────
+
+model CandidatePool {
+  id       String   @id @default(cuid())
+  addedAt  DateTime @default(now())
+  addedBy  String?                      // userId qui a ajouté le candidat au pôle
+  notes    String?  @db.Text
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  staffingTeamId String
+  staffingTeam   StaffingTeam @relation(fields: [staffingTeamId], references: [id], onDelete: Cascade)
+
+  @@unique([candidateId, staffingTeamId])
+  @@map("candidate_pools")
+}
+
+// ─────────────────────────────────────────────
+// CANDIDATE POOL HISTORY (Historique du vivier)
+// ─────────────────────────────────────────────
+
+model CandidatePoolHistory {
+  id              String   @id @default(cuid())
+  action          String                  // "ADDED_TO_POOL", "REJECTED_FROM_MISSION", "REACTIVATED", "CONTACTED", "BLACKLISTED"
+  fromMissionId   String?                 // Mission d'où vient le candidat (si rejeté)
+  fromMissionTitle String?                // Titre de la mission (pour historique lisible)
+  rejectionReason String?                 // Raison du rejet (si applicable)
+  previousPoolStatus PoolStatus?
+  newPoolStatus   PoolStatus?
+  notes           String?  @db.Text
+  performedById   String?                 // userId qui a fait l'action
+  createdAt       DateTime @default(now())
+
+  candidateId String
+  candidate   Candidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  @@index([candidateId, createdAt(sort: Desc)])
+  @@map("candidate_pool_history")
 }
 
 // ─────────────────────────────────────────────
@@ -306,8 +452,9 @@ model Client {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-  missions   Mission[]
-  placements Placement[]
+  missions       Mission[]
+  placements     Placement[]
+  staffingTeams  StaffingTeam[]
 
   @@index([organizationId])
   @@map("clients")
@@ -344,6 +491,10 @@ model Mission {
 
   createdById String?
   createdBy   User?   @relation("CreatedBy", fields: [createdById], references: [id])
+
+  // Pôle / Équipe qui gère cette mission (optionnel)
+  staffingTeamId String?
+  staffingTeam   StaffingTeam? @relation(fields: [staffingTeamId], references: [id])
 
   jobDescription JobDescription?
   requiredSkills RequiredSkill[]
@@ -453,6 +604,8 @@ model Application {
   stage           PipelineStage @default(NEW)
   notes           String?       @db.Text
   rejectionReason String?
+  rejectionCategory String?     // "SKILL_GAP", "SENIORITY", "BUDGET", "TIMING", "CLIENT_REFUSAL", "CANDIDATE_WITHDRAWAL", "OTHER"
+  reinjectedToPool Boolean     @default(false) // Candidat réinjecté dans le vivier après rejet
   interviewDate   DateTime?
   appliedAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

@@ -92,12 +92,14 @@ Tous les diagrammes sont en **Mermaid** (rendus nativement par GitHub).
 | Parsing CV + Matching IA | [`sequences/cv-parsing-matching.md`](./docs/diagrams/sequences/cv-parsing-matching.md) |
 | Onboarding Tenant | [`sequences/tenant-onboarding.md`](./docs/diagrams/sequences/tenant-onboarding.md) |
 | Calcul Financier | [`sequences/financial-calculation.md`](./docs/diagrams/sequences/financial-calculation.md) |
+| Vivier — Rejet, Réactivation, Matching | [`sequences/talent-pool-reactivation.md`](./docs/diagrams/sequences/talent-pool-reactivation.md) |
 
 ### Flows
 | Diagramme | Fichier |
 |-----------|---------|
 | Pipeline IA | [`flows/ai-pipeline.md`](./docs/diagrams/flows/ai-pipeline.md) |
 | Résolution Multi-Tenant | [`flows/multi-tenant-resolution.md`](./docs/diagrams/flows/multi-tenant-resolution.md) |
+| Organisation des Staffing Teams | [`flows/staffing-teams.md`](./docs/diagrams/flows/staffing-teams.md) |
 
 ---
 

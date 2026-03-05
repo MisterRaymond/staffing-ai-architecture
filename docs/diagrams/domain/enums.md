@@ -23,7 +23,25 @@ classDiagram
         ADMIN
         RECRUITER
         MANAGER
+        DIRECTOR
         VIEWER
+    }
+
+    class ManagerLevel {
+        <<enumeration>>
+        TEAM_LEAD
+        SENIOR_MANAGER
+        DIRECTOR
+        VP
+    }
+
+    class PoolStatus {
+        <<enumeration>>
+        IN_POOL
+        ACTIVE_PROCESS
+        ON_MISSION
+        BLACKLISTED
+        DO_NOT_CONTACT
     }
 
     class MissionStatus {

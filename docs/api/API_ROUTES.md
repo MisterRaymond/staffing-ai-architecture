@@ -31,6 +31,47 @@
 | POST | `/api/candidates/parse-cv` | Upload + parsing CV par IA | Recruiter+ |
 | POST | `/api/candidates/:id/reparse` | Re-parser le CV existant | Recruiter+ |
 | GET | `/api/candidates/:id/matches` | Missions qui matchent ce candidat | Oui |
+| GET | `/api/candidates/:id/pool-history` | Historique vivier du candidat | Oui |
+| PUT | `/api/candidates/:id/pool-status` | Changer le statut vivier | Recruiter+ |
+| POST | `/api/candidates/:id/tags` | Ajouter des tags | Recruiter+ |
+| DELETE | `/api/candidates/:id/tags/:tagId` | Supprimer un tag | Recruiter+ |
+
+## Staffing Teams (Pôles / Équipes)
+
+| Méthode | Route | Description | Auth |
+|---------|-------|-------------|:---:|
+| GET | `/api/staffing-teams` | Liste des pôles de l'organisation | Oui |
+| GET | `/api/staffing-teams/:id` | Détail d'un pôle + membres + vivier | Oui |
+| POST | `/api/staffing-teams` | Créer un pôle | Manager+ |
+| PUT | `/api/staffing-teams/:id` | Modifier un pôle | Manager+ |
+| DELETE | `/api/staffing-teams/:id` | Supprimer un pôle | Admin |
+| POST | `/api/staffing-teams/:id/members` | Ajouter un membre au pôle | Manager+ |
+| DELETE | `/api/staffing-teams/:id/members/:userId` | Retirer un membre | Manager+ |
+| POST | `/api/staffing-teams/:id/candidates` | Ajouter un candidat au vivier du pôle | Recruiter+ |
+| DELETE | `/api/staffing-teams/:id/candidates/:candidateId` | Retirer du vivier | Recruiter+ |
+| GET | `/api/staffing-teams/:id/pool` | Vivier de candidats du pôle | Oui |
+
+## Talent Pool (Vivier)
+
+| Méthode | Route | Description | Auth |
+|---------|-------|-------------|:---:|
+| GET | `/api/talent-pool` | Vivier global (tous pôles) + filtres | Oui |
+| GET | `/api/talent-pool/stats` | Stats vivier (taille, chaleur, par pôle) | Manager+ |
+| POST | `/api/talent-pool/search` | Recherche avancée dans le vivier | Oui |
+| POST | `/api/talent-pool/reactivate` | Réactiver un candidat sur une mission | Recruiter+ |
+| GET | `/api/talent-pool/cold` | Candidats froids (non contactés 3+ mois) | Manager+ |
+
+### Filtres vivier (`GET /api/talent-pool`)
+```
+?staffingTeamId=xxx          Par pôle
+&poolStatus=IN_POOL          Par statut vivier
+&tags=Java,Senior            Par tags
+&poolScoreMin=3              Score de chaleur minimum
+&skills=react,typescript     Par compétences
+&availability=IMMEDIATE      Par disponibilité
+&notContactedSince=90        Non contacté depuis X jours
+&sort=poolScore&order=desc   Tri
+```
 
 ### Filtres disponibles (`GET /api/candidates`)
 ```
