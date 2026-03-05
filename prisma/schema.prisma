@@ -908,8 +908,41 @@ model OrganizationRates {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  // Templates de lignes de coûts pré-configurées
+  costLineTemplates CostLineTemplate[]
+
   @@index([organizationId])
   @@map("organization_rates")
+}
+
+// Templates de lignes de coûts associés à un jeu de taux
+// Quand l'utilisateur choisit un preset (France/Maroc),
+// ces templates sont copiés en CostLines réelles sur le placement
+model CostLineTemplate {
+  id              String        @id @default(cuid())
+  label           String                                 // Ex: "Salaire brut", "Charges patronales"
+  // Calcul du montant
+  amountType      CostAmountType                         // FIXED, PERCENTAGE_OF_SALARY, ASK_USER
+  fixedAmount     Decimal?      @db.Decimal(10, 2)       // Montant fixe (ex: mutuelle 80€)
+  percentageOf    String?                                // Champ de référence (ex: "salary")
+  percentageValue Decimal?      @db.Decimal(5, 4)        // Pourcentage (ex: 0.4500 = 45%)
+  // Propriétés de la ligne
+  frequency       CostFrequency                          // DAILY, MONTHLY, ANNUAL, ONE_TIME
+  category        CostCategory  @default(OTHER)
+  isDefault       Boolean       @default(true)           // Inclus par défaut dans le preset
+  sortOrder       Int           @default(0)
+
+  ratesId String
+  rates   OrganizationRates @relation(fields: [ratesId], references: [id], onDelete: Cascade)
+
+  @@index([ratesId])
+  @@map("cost_line_templates")
+}
+
+enum CostAmountType {
+  FIXED                 // Montant fixe (ex: mutuelle 80€/mois)
+  PERCENTAGE_OF_SALARY  // % du salaire brut (ex: charges 45%)
+  ASK_USER              // L'utilisateur doit saisir le montant (ex: salaire brut)
 }
 
 // Configuration financière d'un placement

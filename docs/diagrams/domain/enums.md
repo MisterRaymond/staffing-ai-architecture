@@ -154,6 +154,13 @@ classDiagram
         OTHER
     }
 
+    class CostAmountType {
+        <<enumeration>>
+        FIXED
+        PERCENTAGE_OF_SALARY
+        ASK_USER
+    }
+
     class SkillLevel {
         <<enumeration>>
         BEGINNER

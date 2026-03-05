@@ -32,17 +32,24 @@ sequenceDiagram
 
     Note over DM,DB: ═══ SAISIE DES LIGNES DE COÛTS ═══
 
-    DM->>APP: Ajouter les coûts du consultant
+    DM->>APP: Sélectionner le preset pays
+    APP->>API: GET /api/finance/rates
+    API->>DB: SELECT OrganizationRates + CostLineTemplates
+    DB-->>API: "Taux France" (10 lignes), "Taux Maroc" (8 lignes)
+    API-->>APP: Liste des presets disponibles
 
-    API->>DB: Charger les taux par défaut (OrganizationRates)
-    DB-->>API: Taux France : charges 45%, mutuelle 80€...
-    API-->>APP: Formulaire pré-rempli avec les taux
+    DM->>APP: Choisir "Preset France"
+    APP->>API: POST /api/placements/:id/finance/costs/prefill<br/>{ratesId: "taux_france_id"}
 
-    DM->>APP: Valider / ajuster les lignes de coûts
+    Note over API: Génération des CostLines depuis les templates :<br/>- Salaire brut : ASK_USER → vide<br/>- Charges (45%) : PERCENTAGE_OF_SALARY → en attente<br/>- Mutuelle : FIXED → 80€/mois<br/>- Prévoyance (1.5%) : PERCENTAGE_OF_SALARY → en attente<br/>- Transport : FIXED → 45€/mois<br/>- Tickets resto : FIXED → 180€/mois<br/>- PC portable : FIXED → 1 800€/an
+
+    API-->>APP: Lignes pré-remplies (montants fixes OK, % en attente)
+
+    DM->>APP: Saisir le salaire brut : 3 500€/mois
+    APP->>APP: Calcul automatique des % :<br/>Charges = 3 500 × 45% = 1 575€<br/>Prévoyance = 3 500 × 1.5% = 52.50€
+
+    DM->>APP: Ajuster si nécessaire + Valider
     APP->>API: POST /api/placements/:id/finance/costs
-
-    Note over API: Lignes de coûts :<br/>- Salaire brut : 3 500€/mois → 194.44€/j<br/>- Charges 45% : 1 575€/mois → 87.50€/j<br/>- Mutuelle : 80€/mois → 4.44€/j<br/>- Tickets resto : 180€/mois → 10€/j<br/>- PC portable : 1 800€/an → 8.26€/j
-
     API->>DB: INSERT CostLine[] (avec dailyAmount calculé)
 
     Note over API: Calcul automatique :<br/>dailyCost = Σ dailyAmount de toutes les CostLines<br/>dailyRevenue = clientTjm (ou forfaitDailyRate)<br/>dailyMargin = dailyRevenue - dailyCost<br/>marginRate = (dailyMargin / dailyRevenue) × 100
