@@ -244,6 +244,7 @@ model Organization {
   applications   Application[]
   staffingTeams        StaffingTeam[]
   sourcingIntegrations SourcingIntegration[]
+  notifications        Notification[]
   auditLogs            AuditLog[]
 
   @@map("organizations")
@@ -281,6 +282,9 @@ model User {
   createdMissions   Mission[]   @relation("CreatedBy")
   assignedApplications Application[] @relation("AssignedTo")
   evaluations          TechnicalEvaluation[] @relation("Evaluator")
+  notificationsReceived Notification[] @relation("NotificationRecipient")
+  notificationsSent     Notification[] @relation("NotificationSender")
+  notificationPreferences NotificationPreference[]
   auditLogs         AuditLog[]
 
   @@index([organizationId])
@@ -820,6 +824,77 @@ model FinancialRecord {
   @@unique([placementId, month])
   @@index([placementId])
   @@map("financial_records")
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+
+model Notification {
+  id            String             @id @default(cuid())
+  type          String                              // Ex: "evaluation_assigned", "mission_ending_soon"
+  channel       NotificationChannel                 // IN_APP, EMAIL, BOTH
+  title         String                              // Titre court affiché
+  message       String             @db.Text         // Corps du message
+  isRead        Boolean            @default(false)
+  readAt        DateTime?
+  // Lien vers l'entité concernée
+  entityType    String?                             // "application", "mission", "candidate", "placement"
+  entityId      String?                             // ID de l'entité pour navigation directe
+  actionUrl     String?                             // URL relative pour clic (ex: "/missions/xxx/matches")
+  // Métadonnées
+  metadata      Json?                               // Données additionnelles spécifiques au type
+  expiresAt     DateTime?                           // Auto-suppression après cette date
+  createdAt     DateTime           @default(now())
+
+  // Destinataire
+  recipientId   String
+  recipient     User               @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  // Émetteur (null si système)
+  senderId      String?
+  sender        User?              @relation("NotificationSender", fields: [senderId], references: [id])
+
+  organizationId String
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([recipientId, isRead, createdAt(sort: Desc)])
+  @@index([organizationId, type])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id          String   @id @default(cuid())
+  eventType   String                                // Ex: "evaluation_assigned", "mission_ending_soon"
+  inApp       Boolean  @default(true)               // Recevoir en notification in-app
+  email       Boolean  @default(true)               // Recevoir par email
+  enabled     Boolean  @default(true)               // Activer/désactiver complètement
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventType])
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+model NotificationTemplate {
+  id          String   @id @default(cuid())
+  eventType   String   @unique                      // Ex: "evaluation_assigned"
+  titleTemplate   String                             // "Évaluation assignée : {{candidateName}}"
+  messageTemplate String @db.Text                    // "{{senderName}} vous a assigné l'évaluation de {{candidateName}} pour la mission {{missionTitle}}."
+  emailSubject    String?                            // Sujet email (si différent du titre)
+  emailTemplate   String? @db.Text                   // Template email HTML (si différent du message)
+  defaultChannels NotificationChannel @default(BOTH)
+  isActive    Boolean  @default(true)
+  
+  @@map("notification_templates")
+}
+
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  BOTH
 }
 
 // ─────────────────────────────────────────────

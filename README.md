@@ -65,6 +65,7 @@ Voir les documents détaillés dans [`/docs/architecture/`](./docs/architecture/
 - [Architecture Multi-Tenant](./docs/architecture/MULTI_TENANT.md)
 - [Architecture Module IA](./docs/architecture/AI_MODULE.md)
 - [Architecture RBAC — Rôles & Permissions](./docs/architecture/RBAC.md)
+- [Architecture Notifications](./docs/architecture/NOTIFICATIONS.md)
 - [Architecture Intégrations Sourcing](./docs/architecture/SOURCING_INTEGRATIONS.md)
 
 ---
@@ -95,6 +96,7 @@ Tous les diagrammes sont en **Mermaid** (rendus nativement par GitHub).
 | Onboarding Tenant | [`sequences/tenant-onboarding.md`](./docs/diagrams/sequences/tenant-onboarding.md) |
 | Calcul Financier | [`sequences/financial-calculation.md`](./docs/diagrams/sequences/financial-calculation.md) |
 | Vivier — Rejet, Réactivation, Matching | [`sequences/talent-pool-reactivation.md`](./docs/diagrams/sequences/talent-pool-reactivation.md) |
+| Notifications — Dispatch multi-canal | [`sequences/notification-dispatch.md`](./docs/diagrams/sequences/notification-dispatch.md) |
 
 ### Flows
 | Diagramme | Fichier |

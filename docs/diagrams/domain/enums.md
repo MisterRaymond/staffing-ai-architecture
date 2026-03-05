@@ -98,6 +98,13 @@ classDiagram
         STRONG_NO
     }
 
+    class NotificationChannel {
+        <<enumeration>>
+        IN_APP
+        EMAIL
+        BOTH
+    }
+
     class SkillLevel {
         <<enumeration>>
         BEGINNER

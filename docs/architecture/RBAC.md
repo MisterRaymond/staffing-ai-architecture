@@ -171,6 +171,14 @@ Exemple : le rôle "Recruteur" a la permission `candidates:read` avec scope `tea
 | `integrations:manage` | Gérer les intégrations | Connecter/déconnecter outils |
 | `integrations:sync` | Synchroniser | Forcer une sync manuelle |
 
+### Module : Notifications (`notifications`)
+
+| Code | Nom | Description |
+|------|-----|-------------|
+| `notifications:read` | Voir ses notifications | Accès à ses propres notifications |
+| `notifications:manage_preferences` | Gérer ses préférences | Choisir les canaux par type d'événement |
+| `notifications:manage_templates` | Gérer les templates | Modifier les templates de notification (Admin) |
+
 ## Rôles par défaut (créés à l'onboarding)
 
 Ces rôles sont créés automatiquement quand une ESN s'inscrit. L'admin peut les modifier, en créer de nouveaux ou les supprimer (sauf "Administrateur" qui est protégé).

@@ -274,6 +274,32 @@ PUT /api/roles/:id/permissions
 8. Notification au Responsable Recrutement du pôle
 ```
 
+## Notifications
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/notifications` | Mes notifications (paginées) | `notifications:read` |
+| GET | `/api/notifications/unread-count` | Nombre de notifications non lues | `notifications:read` |
+| PATCH | `/api/notifications/:id/read` | Marquer comme lue | `notifications:read` |
+| POST | `/api/notifications/read-all` | Tout marquer comme lu | `notifications:read` |
+| DELETE | `/api/notifications/:id` | Supprimer une notification | `notifications:read` |
+| GET | `/api/notifications/preferences` | Mes préférences de notification | `notifications:manage_preferences` |
+| PUT | `/api/notifications/preferences` | Modifier mes préférences | `notifications:manage_preferences` |
+
+### Filtres disponibles (`GET /api/notifications`)
+```
+?unread=true                 Non lues uniquement
+&type=evaluation_assigned    Par type d'événement
+&page=1&limit=20             Pagination
+```
+
+### Admin — Templates de notification
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/admin/notification-templates` | Liste des templates | `notifications:manage_templates` |
+| PUT | `/api/admin/notification-templates/:type` | Modifier un template | `notifications:manage_templates` |
+
 ## Super Admin (Provider)
 
 | Méthode | Route | Description | Auth |

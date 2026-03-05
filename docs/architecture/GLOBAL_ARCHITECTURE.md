@@ -54,7 +54,7 @@ Aucun serveur à gérer :
 | **Super Admin** | Gestion tenants, billing, monitoring | P1 |
 | **Intégrations Sourcing** | SmartRecruiters, LinkedIn Recruiter, Indeed, APEC — import CVs qualifiés | P2 |
 | **Espace Candidat** | Portail candidat, postulation, suivi | P2 |
-| **Notifications** | Alertes in-app, emails automatiques | P2 |
+| **Notifications** | Multi-canal (in-app + email), 20+ types d'événements, préférences par utilisateur, templates, digests | P1 |
 | **Reporting** | Exports, graphiques, KPIs avancés | P2 |
 
 ## Diagrammes associés
