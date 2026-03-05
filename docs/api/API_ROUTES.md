@@ -169,13 +169,44 @@ PUT /api/roles/:id/permissions
 
 ## Pipeline (Applications)
 
-| Méthode | Route | Description | Auth |
+| Méthode | Route | Description | Permission |
 |---------|-------|-------------|:---:|
-| GET | `/api/applications` | Toutes les candidatures (Kanban) | Oui |
-| POST | `/api/applications` | Créer une candidature | Recruiter+ |
-| PATCH | `/api/applications/:id/stage` | Avancer/reculer dans le pipeline | Recruiter+ |
-| PATCH | `/api/applications/:id/reject` | Rejeter avec raison | Recruiter+ |
-| PUT | `/api/applications/:id/notes` | Ajouter des notes | Recruiter+ |
+| GET | `/api/applications` | Toutes les candidatures (Kanban) | `pipeline:read` |
+| POST | `/api/applications` | Créer une candidature | `pipeline:manage` |
+| PATCH | `/api/applications/:id/stage` | Avancer/reculer dans le pipeline | `pipeline:manage` |
+| PATCH | `/api/applications/:id/reject` | Rejeter avec raison | `pipeline:reject` |
+| PUT | `/api/applications/:id/notes` | Ajouter des notes | `pipeline:manage` |
+| POST | `/api/applications/:id/assign-evaluator` | Assigner un Expert Technique | `pipeline:assign_evaluator` |
+
+## Évaluations Techniques
+
+| Méthode | Route | Description | Permission |
+|---------|-------|-------------|:---:|
+| GET | `/api/applications/:id/evaluations` | Liste des évaluations d'une candidature | `evaluations:read` |
+| POST | `/api/applications/:id/evaluations` | Créer une évaluation technique | `evaluations:create` |
+| GET | `/api/evaluations/:id` | Détail d'une évaluation | `evaluations:read` |
+| PUT | `/api/evaluations/:id` | Modifier une évaluation | `evaluations:update` |
+| DELETE | `/api/evaluations/:id` | Supprimer une évaluation | `evaluations:delete` |
+| GET | `/api/evaluations/my` | Mes évaluations à faire (Expert Technique) | `evaluations:create` |
+| GET | `/api/evaluations/stats` | Stats évaluations (taux d'acceptation, temps moyen) | `evaluations:read_all` |
+
+### Flow d'évaluation technique
+
+```
+1. Le Responsable Recrutement pré-qualifie un candidat (pipeline: PRESELECTED)
+2. Il assigne un Expert Technique via POST /assign-evaluator
+3. L'Expert reçoit une notification avec le profil + la fiche de poste
+4. L'Expert conduit l'entretien technique
+5. Il remplit son évaluation : POST /api/applications/:id/evaluations
+   - Verdict (STRONG_YES → STRONG_NO)
+   - Score global (0-100)
+   - Scores par compétence [{skill, score: 0-5, notes}]
+   - Synthèse écrite + recommandation
+   - Questions posées (capitalisation)
+6. Le Responsable Recrutement voit l'évaluation
+7. Si verdict positif → pipeline avance vers PROPOSED_TO_CLIENT
+   Si verdict négatif → pipeline REJECTED (avec données d'évaluation)
+```
 
 ### Filtres disponibles (`GET /api/applications`)
 ```

@@ -128,6 +128,8 @@ enum MissionStatus {
 enum PipelineStage {
   NEW
   PRESELECTED
+  TECHNICAL_EVALUATION  // En attente d'évaluation par un Expert Technique
+  CONDITIONAL_HOLD      // Évaluation conditionnelle — en attente de décision
   INTERNAL_INTERVIEW
   PROPOSED_TO_CLIENT
   CLIENT_INTERVIEW
@@ -278,6 +280,7 @@ model User {
   createdCandidates Candidate[] @relation("CreatedBy")
   createdMissions   Mission[]   @relation("CreatedBy")
   assignedApplications Application[] @relation("AssignedTo")
+  evaluations          TechnicalEvaluation[] @relation("Evaluator")
   auditLogs         AuditLog[]
 
   @@index([organizationId])
@@ -694,10 +697,65 @@ model Application {
   assignedToId String?
   assignedTo   User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
 
+  evaluations  TechnicalEvaluation[]
+
   @@unique([candidateId, missionId])
   @@index([organizationId, stage])
   @@index([missionId])
   @@map("applications")
+}
+
+// ─────────────────────────────────────────────
+// TECHNICAL EVALUATION (Évaluation technique)
+// ─────────────────────────────────────────────
+
+model TechnicalEvaluation {
+  id              String           @id @default(cuid())
+  applicationId   String
+  application     Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // L'expert technique qui évalue
+  evaluatorId     String
+  evaluator       User             @relation("Evaluator", fields: [evaluatorId], references: [id])
+
+  // Verdict global
+  verdict         EvaluationVerdict
+  globalScore     Int                              // 0-100
+  summary         String           @db.Text        // Synthèse écrite de l'évaluation
+  recommendation  String?          @db.Text        // "Pousser au client car...", "Ne pas proposer car..."
+
+  // Scores détaillés par compétence
+  skillScores     Json                              // [{ skill, score: 0-5, level: "confirmé", notes: "..." }]
+
+  // Entretien
+  interviewDate   DateTime                          // Date de l'entretien technique
+  durationMinutes Int?                              // Durée de l'entretien
+  interviewType   String           @default("visio") // "visio", "phone", "on_site", "live_coding", "take_home"
+
+  // Questions / Exercices posés (pour capitalisation)
+  questionsAsked  Json?                             // [{ question, domain, candidateAnswer, score }]
+
+  // Soft skills observés lors de l'entretien
+  softSkillNotes  String?          @db.Text        // Communication, motivation, culture fit
+
+  // Pièces jointes (ex: résultat d'un test technique)
+  attachmentUrl   String?
+  attachmentName  String?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([applicationId])
+  @@index([evaluatorId])
+  @@map("technical_evaluations")
+}
+
+enum EvaluationVerdict {
+  STRONG_YES     // Excellent, pousser au client immédiatement
+  YES            // Bon niveau, correspond au besoin
+  CONDITIONAL    // OK sous conditions (ex: formation sur un outil spécifique)
+  NO             // Ne correspond pas techniquement
+  STRONG_NO      // Niveau insuffisant, ne pas proposer
 }
 
 // ─────────────────────────────────────────────

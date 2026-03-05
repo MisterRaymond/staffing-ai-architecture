@@ -78,6 +78,8 @@ classDiagram
         <<enumeration>>
         NEW
         PRESELECTED
+        TECHNICAL_EVALUATION
+        CONDITIONAL_HOLD
         INTERNAL_INTERVIEW
         PROPOSED_TO_CLIENT
         CLIENT_INTERVIEW
@@ -85,6 +87,15 @@ classDiagram
         ON_MISSION
         REJECTED
         CANCELLED
+    }
+
+    class EvaluationVerdict {
+        <<enumeration>>
+        STRONG_YES
+        YES
+        CONDITIONAL
+        NO
+        STRONG_NO
     }
 
     class SkillLevel {
