@@ -1,3 +1,5 @@
+# Multi Tenant Resolution
+
 ```mermaid
 graph TB
     REQ["🌐 Requête HTTP entrante<br/>acme-consulting.staffingai.fr/candidates"]

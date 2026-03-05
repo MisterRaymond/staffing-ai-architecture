@@ -82,5 +82,5 @@ Le super admin peut "se connecter en tant que" un tenant pour le support :
 
 ## Diagrammes associés
 
-- [Flow de résolution Multi-Tenant](../diagrams/flows/multi-tenant-resolution.mermaid)
-- [Séquence Onboarding Tenant](../diagrams/sequences/tenant-onboarding.mermaid)
+- [Flow de résolution Multi-Tenant](../diagrams/flows/multi-tenant-resolution.md)
+- [Séquence Onboarding Tenant](../diagrams/sequences/tenant-onboarding.md)

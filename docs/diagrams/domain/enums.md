@@ -1,3 +1,5 @@
+# Enums
+
 ```mermaid
 classDiagram
     class Plan {
@@ -124,5 +126,13 @@ classDiagram
         LOGIN
         EXPORT
         IMPERSONATE
+    }
+
+    class ParsingStatus {
+        <<enumeration>>
+        PENDING
+        PROCESSING
+        COMPLETED
+        FAILED
     }
 ```

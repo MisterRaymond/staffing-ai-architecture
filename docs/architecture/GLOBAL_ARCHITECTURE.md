@@ -22,9 +22,10 @@ Toutes les opérations passent par les API Routes Next.js (`/api/*`). Le fronten
 
 ### 3. IA comme service
 
-Le module IA (parsing CV + matching) est découplé sous forme de services indépendants :
+Le module IA (parsing CV, parsing fiche de poste, matching) est découplé sous forme de services indépendants :
+- `JobDescriptionParserService` : extraction structurée des critères depuis un appel d'offre / fiche de poste
 - `CVParserService` : extraction structurée depuis un CV
-- `MatchingService` : scoring candidat ↔ mission
+- `MatchingService` : scoring candidat ↔ fiche de poste
 - `SkillNormalizerService` : standardisation des compétences
 
 Ces services appellent l'API Claude (Anthropic) et sont rate-limités par tenant via Redis.
@@ -44,7 +45,8 @@ Aucun serveur à gérer :
 | **Auth & Multi-Tenant** | Inscription, login, résolution tenant, rôles | P0 |
 | **Gestion Candidats** | CRUD, upload CV, parsing IA | P0 |
 | **Gestion Missions** | CRUD, skills requis, statuts | P0 |
-| **Matching IA** | Scoring sémantique, ranking, explications | P0 |
+| **Upload Fiche de Poste** | Upload appel d'offre client, parsing IA, extraction critères | P0 |
+| **Matching IA** | Scoring sémantique basé sur fiche de poste ↔ CV, ranking, explications | P0 |
 | **Pipeline Recrutement** | Kanban, suivi des étapes, notes | P1 |
 | **Module Financier** | Rentabilité, marges, simulations | P0 |
 | **Super Admin** | Gestion tenants, billing, monitoring | P1 |
@@ -54,6 +56,6 @@ Aucun serveur à gérer :
 
 ## Diagrammes associés
 
-- [Vue Contexte C4](../diagrams/system/context.mermaid)
-- [Vue Déploiement](../diagrams/system/deployment.mermaid)
-- [Diagramme de Classes](../diagrams/domain/class-diagram.mermaid)
+- [Vue Contexte C4](../diagrams/system/context.md)
+- [Vue Déploiement](../diagrams/system/deployment.md)
+- [Diagramme de Classes](../diagrams/domain/class-diagram.md)

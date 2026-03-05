@@ -59,12 +59,36 @@
 |---------|-------|-------------|:---:|
 | GET | `/api/missions` | Liste paginée + filtres | Oui |
 | GET | `/api/missions/:id` | Détail mission | Oui |
-| POST | `/api/missions` | Créer une mission | Recruiter+ |
+| POST | `/api/missions` | Créer une mission (+ upload fiche de poste optionnel) | Recruiter+ |
 | PUT | `/api/missions/:id` | Modifier | Recruiter+ |
 | DELETE | `/api/missions/:id` | Supprimer | Admin |
 | POST | `/api/missions/:id/match` | Lancer le matching IA | Recruiter+ |
 | GET | `/api/missions/:id/matches` | Résultats du matching | Oui |
 | PUT | `/api/missions/:id/status` | Changer le statut | Recruiter+ |
+
+## Fiches de Poste / Appels d'Offre
+
+| Méthode | Route | Description | Auth |
+|---------|-------|-------------|:---:|
+| POST | `/api/missions/:id/job-description` | Upload fiche de poste (PDF/DOCX) + parsing IA | Recruiter+ |
+| GET | `/api/missions/:id/job-description` | Détail fiche parsée + critères extraits | Oui |
+| PUT | `/api/missions/:id/job-description` | Remplacer la fiche de poste (re-upload) | Recruiter+ |
+| DELETE | `/api/missions/:id/job-description` | Supprimer la fiche | Recruiter+ |
+| POST | `/api/missions/:id/job-description/reparse` | Re-parser la fiche existante | Recruiter+ |
+| GET | `/api/missions/:id/job-description/status` | Statut du parsing (polling) | Oui |
+| PUT | `/api/missions/:id/job-description/validate` | Valider/ajuster les critères extraits | Recruiter+ |
+
+### Flow d'upload de fiche de poste
+
+```
+1. POST /api/missions/:id/job-description  (upload PDF)
+2. → Stockage R2 + extraction texte + parsing IA (async)
+3. GET  /api/missions/:id/job-description/status  (polling)
+4. → Quand COMPLETED : critères auto-remplis dans la mission
+5. PUT  /api/missions/:id/job-description/validate (recruteur ajuste)
+6. → RequiredSkills de la mission mis à jour
+7. POST /api/missions/:id/match  (matching basé sur la fiche parsée)
+```
 
 ### Filtres disponibles (`GET /api/missions`)
 ```

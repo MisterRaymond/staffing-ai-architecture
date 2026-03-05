@@ -18,10 +18,11 @@
 
 **StaffingAI** est un outil de pilotage de staffing IT conçu pour les ESN (Entreprises de Services du Numérique). Il combine :
 
-1. **Matching IA** — Scoring sémantique candidats ↔ missions via Claude API
+1. **Matching IA** — Scoring sémantique candidats ↔ missions basé sur les fiches de poste / appels d'offres uploadés
 2. **Module Financier** — Rentabilité en temps réel (TJM, marges, intercontrat)
 3. **Pipeline de Recrutement** — Suivi des candidatures de A à Z
-4. **Architecture Multi-Tenant** — Chaque ESN a son sous-domaine isolé
+4. **Upload de Fiches de Poste** — Les ESN uploadent les appels d'offres clients, l'IA en extrait les critères de matching
+5. **Architecture Multi-Tenant** — Chaque ESN a son sous-domaine isolé
 
 ### Positionnement
 
@@ -73,30 +74,30 @@ Tous les diagrammes sont en **Mermaid** (rendus nativement par GitHub).
 ### Système
 | Diagramme | Fichier |
 |-----------|---------|
-| Vue Contexte (C4) | [`system/context.mermaid`](./docs/diagrams/system/context.mermaid) |
-| Vue Déploiement | [`system/deployment.mermaid`](./docs/diagrams/system/deployment.mermaid) |
-| Flux Multi-Tenant | [`flows/multi-tenant-resolution.mermaid`](./docs/diagrams/flows/multi-tenant-resolution.mermaid) |
+| Vue Contexte (C4) | [`system/context.md`](./docs/diagrams/system/context.md) |
+| Vue Déploiement | [`system/deployment.md`](./docs/diagrams/system/deployment.md) |
+| Flux Multi-Tenant | [`flows/multi-tenant-resolution.md`](./docs/diagrams/flows/multi-tenant-resolution.md) |
 
 ### Domaine
 | Diagramme | Fichier |
 |-----------|---------|
-| Diagramme de Classes (UML) | [`domain/class-diagram.mermaid`](./docs/diagrams/domain/class-diagram.mermaid) |
-| Entité-Relation (ERD) | [`domain/erd.mermaid`](./docs/diagrams/domain/erd.mermaid) |
-| Enums & Types | [`domain/enums.mermaid`](./docs/diagrams/domain/enums.mermaid) |
-| Diagramme d'États - Pipeline | [`domain/pipeline-states.mermaid`](./docs/diagrams/domain/pipeline-states.mermaid) |
+| Diagramme de Classes (UML) | [`domain/class-diagram.md`](./docs/diagrams/domain/class-diagram.md) |
+| Entité-Relation (ERD) | [`domain/erd.md`](./docs/diagrams/domain/erd.md) |
+| Enums & Types | [`domain/enums.md`](./docs/diagrams/domain/enums.md) |
+| Diagramme d'États - Pipeline | [`domain/pipeline-states.md`](./docs/diagrams/domain/pipeline-states.md) |
 
 ### Séquences
 | Diagramme | Fichier |
 |-----------|---------|
-| Parsing CV + Matching IA | [`sequences/cv-parsing-matching.mermaid`](./docs/diagrams/sequences/cv-parsing-matching.mermaid) |
-| Onboarding Tenant | [`sequences/tenant-onboarding.mermaid`](./docs/diagrams/sequences/tenant-onboarding.mermaid) |
-| Calcul Financier | [`sequences/financial-calculation.mermaid`](./docs/diagrams/sequences/financial-calculation.mermaid) |
+| Parsing CV + Matching IA | [`sequences/cv-parsing-matching.md`](./docs/diagrams/sequences/cv-parsing-matching.md) |
+| Onboarding Tenant | [`sequences/tenant-onboarding.md`](./docs/diagrams/sequences/tenant-onboarding.md) |
+| Calcul Financier | [`sequences/financial-calculation.md`](./docs/diagrams/sequences/financial-calculation.md) |
 
 ### Flows
 | Diagramme | Fichier |
 |-----------|---------|
-| Pipeline IA | [`flows/ai-pipeline.mermaid`](./docs/diagrams/flows/ai-pipeline.mermaid) |
-| Résolution Multi-Tenant | [`flows/multi-tenant-resolution.mermaid`](./docs/diagrams/flows/multi-tenant-resolution.mermaid) |
+| Pipeline IA | [`flows/ai-pipeline.md`](./docs/diagrams/flows/ai-pipeline.md) |
+| Résolution Multi-Tenant | [`flows/multi-tenant-resolution.md`](./docs/diagrams/flows/multi-tenant-resolution.md) |
 
 ---
 
@@ -150,20 +151,20 @@ staffing-ai-architecture/
 │   │   └── AI_MODULE.md
 │   ├── diagrams/
 │   │   ├── system/
-│   │   │   ├── context.mermaid
-│   │   │   └── deployment.mermaid
+│   │   │   ├── context.md
+│   │   │   └── deployment.md
 │   │   ├── domain/
-│   │   │   ├── class-diagram.mermaid
-│   │   │   ├── erd.mermaid
-│   │   │   ├── enums.mermaid
-│   │   │   └── pipeline-states.mermaid
+│   │   │   ├── class-diagram.md
+│   │   │   ├── erd.md
+│   │   │   ├── enums.md
+│   │   │   └── pipeline-states.md
 │   │   ├── sequences/
-│   │   │   ├── cv-parsing-matching.mermaid
-│   │   │   ├── tenant-onboarding.mermaid
-│   │   │   └── financial-calculation.mermaid
+│   │   │   ├── cv-parsing-matching.md
+│   │   │   ├── tenant-onboarding.md
+│   │   │   └── financial-calculation.md
 │   │   └── flows/
-│   │       ├── ai-pipeline.mermaid
-│   │       └── multi-tenant-resolution.mermaid
+│   │       ├── ai-pipeline.md
+│   │       └── multi-tenant-resolution.md
 │   ├── database/
 │   │   └── SCHEMA.md
 │   └── api/

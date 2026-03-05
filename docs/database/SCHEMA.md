@@ -25,7 +25,10 @@ Les entreprises clientes de l'ESN, celles qui achètent des prestations de consu
 Une demande de prestation d'un client. Contient les skills requis, le TJM de vente, la durée estimée.
 
 ### RequiredSkill
-Compétences requises pour une mission, avec un niveau minimum et un poids (importance).
+Compétences requises pour une mission, avec un niveau minimum et un poids (importance). Ces skills peuvent être **auto-générés par le parsing IA de la fiche de poste**, puis ajustés par le recruteur.
+
+### JobDescription (Fiche de Poste / Appel d'Offre)
+Document uploadé par le recruteur pour une mission. L'IA parse le document et en extrait des critères structurés : skills requis, séniorité, expérience, certifications, langues, localisation, budget, etc. Relation 1:1 avec Mission. Les critères extraits servent de **base au matching IA**. Le champ `parsingStatus` suit l'état du parsing (PENDING → PROCESSING → COMPLETED / FAILED).
 
 ### MatchScore
 Résultat du matching IA entre un candidat et une mission. Score global 0-100, scores par critère, forces/lacunes, recommandation.
@@ -66,6 +69,6 @@ CREATE INDEX idx_skills_normalized ON skills(normalized_name);
 
 ## Diagrammes associés
 
-- [Diagramme de Classes UML](../diagrams/domain/class-diagram.mermaid)
-- [Entité-Relation (ERD)](../diagrams/domain/erd.mermaid)
-- [Enums & Types](../diagrams/domain/enums.mermaid)
+- [Diagramme de Classes UML](../diagrams/domain/class-diagram.md)
+- [Entité-Relation (ERD)](../diagrams/domain/erd.md)
+- [Enums & Types](../diagrams/domain/enums.md)

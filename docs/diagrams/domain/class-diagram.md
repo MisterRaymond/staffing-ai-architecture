@@ -1,3 +1,5 @@
+# Class Diagram
+
 ```mermaid
 classDiagram
     class Organization {
@@ -151,6 +153,35 @@ classDiagram
         +String missionId
     }
 
+    class JobDescription {
+        +String id
+        +String fileUrl
+        +String fileName
+        +String fileType
+        +String rawText
+        +Json parsedData
+        +String extractedTitle
+        +String extractedDescription
+        +Json extractedSkills
+        +Seniority extractedSeniority
+        +Int extractedExperience
+        +String extractedLocation
+        +RemotePolicy extractedRemotePolicy
+        +Decimal extractedBudget
+        +DateTime extractedStartDate
+        +String extractedDuration
+        +Json extractedCertifications
+        +Json extractedLanguages
+        +ParsingStatus parsingStatus
+        +String parsingError
+        +DateTime parsedAt
+        +String missionId
+        --
+        +isFullyParsed() Boolean
+        +getExtractedSkillNames() String[]
+        +hasParsingError() Boolean
+    }
+
     class MatchScore {
         +String id
         +String candidateId
@@ -264,6 +295,7 @@ classDiagram
     Candidate "1" --> "*" Placement : est placé via
     
     Mission "1" --> "*" RequiredSkill : exige
+    Mission "1" --> "0..1" JobDescription : a comme fiche de poste
     Mission "1" --> "*" MatchScore : génère
     Mission "1" --> "*" Application : reçoit
     Mission "1" --> "*" Placement : aboutit à

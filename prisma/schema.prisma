@@ -129,6 +129,13 @@ enum AuditAction {
   IMPERSONATE
 }
 
+enum ParsingStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
 // ─────────────────────────────────────────────
 // ORGANIZATION (Tenant)
 // ─────────────────────────────────────────────
@@ -338,6 +345,7 @@ model Mission {
   createdById String?
   createdBy   User?   @relation("CreatedBy", fields: [createdById], references: [id])
 
+  jobDescription JobDescription?
   requiredSkills RequiredSkill[]
   matchScores    MatchScore[]
   applications   Application[]
@@ -346,6 +354,44 @@ model Mission {
   @@index([organizationId, status])
   @@index([clientId])
   @@map("missions")
+}
+
+// ─────────────────────────────────────────────
+// JOB DESCRIPTION (Fiche de Poste / Appel d'Offre)
+// ─────────────────────────────────────────────
+
+model JobDescription {
+  id               String   @id @default(cuid())
+  fileUrl          String                           // URL du fichier original (PDF/DOCX)
+  fileName         String                           // Nom original du fichier
+  fileType         String                           // "application/pdf", "application/docx"
+  rawText          String?  @db.Text                // Texte brut extrait du document
+  parsedData       Json?                            // Données structurées extraites par l'IA
+  // Champs extraits par l'IA (dénormalisés pour requêtes rapides)
+  extractedTitle         String?                    // Titre du poste extrait
+  extractedDescription   String?  @db.Text          // Description extraite
+  extractedSkills        Json?                      // [{name, level, mandatory}] extraits
+  extractedSeniority     Seniority?                 // Séniorité extraite
+  extractedExperience    Int?                       // Années d'expérience requises
+  extractedLocation      String?                    // Localisation extraite
+  extractedRemotePolicy  RemotePolicy?              // Politique remote extraite
+  extractedBudget        Decimal? @db.Decimal(10,2) // TJM ou budget extrait
+  extractedStartDate     DateTime?                  // Date de démarrage extraite
+  extractedDuration      String?                    // Durée extraite (ex: "6 mois")
+  extractedCertifications Json?                     // Certifications requises
+  extractedLanguages     Json?                      // Langues requises
+  // Statut de parsing
+  parsingStatus    ParsingStatus @default(PENDING)
+  parsingError     String?                          // Message d'erreur si échec
+  parsedAt         DateTime?                        // Date du dernier parsing
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  missionId String   @unique                        // 1 fiche de poste par mission
+  mission   Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@map("job_descriptions")
 }
 
 // ─────────────────────────────────────────────

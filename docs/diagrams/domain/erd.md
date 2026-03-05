@@ -1,3 +1,5 @@
+# Erd
+
 ```mermaid
 erDiagram
     Organization ||--o{ User : "emploie"
@@ -18,6 +20,7 @@ erDiagram
     Candidate ||--o{ Placement : "est placé"
     
     Mission ||--o{ RequiredSkill : "exige"
+    Mission ||--o| JobDescription : "a comme fiche de poste"
     Mission ||--o{ MatchScore : "reçoit"
     Mission ||--o{ Application : "reçoit"
     Mission ||--o{ Placement : "aboutit"
@@ -147,6 +150,32 @@ erDiagram
         boolean isMandatory "default true"
         int weight "1-10 importance"
         string missionId FK "NOT NULL"
+    }
+
+    JobDescription {
+        string id PK "cuid()"
+        string fileUrl "NOT NULL — URL du fichier original"
+        string fileName "NOT NULL — Nom original du fichier"
+        string fileType "NOT NULL — MIME type"
+        text rawText "nullable — Texte brut extrait"
+        json parsedData "nullable — Données structurées IA"
+        string extractedTitle "nullable — Titre extrait par IA"
+        text extractedDescription "nullable — Description extraite"
+        json extractedSkills "nullable — Skills extraits par IA"
+        enum extractedSeniority "nullable — JUNIOR to ARCHITECT"
+        int extractedExperience "nullable — Années requises"
+        string extractedLocation "nullable"
+        enum extractedRemotePolicy "nullable"
+        decimal extractedBudget "nullable — TJM ou budget"
+        datetime extractedStartDate "nullable"
+        string extractedDuration "nullable — ex: 6 mois"
+        json extractedCertifications "nullable"
+        json extractedLanguages "nullable"
+        enum parsingStatus "PENDING | PROCESSING | COMPLETED | FAILED"
+        string parsingError "nullable — Message erreur"
+        datetime parsedAt "nullable"
+        string missionId FK "UNIQUE — 1 fiche par mission"
+        datetime createdAt "default now()"
     }
 
     MatchScore {

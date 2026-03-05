@@ -1,3 +1,5 @@
+# Pipeline States
+
 ```mermaid
 stateDiagram-v2
     [*] --> NEW: Candidat postule ou importé par recruteur
