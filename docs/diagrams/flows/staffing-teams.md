@@ -68,12 +68,15 @@ graph TB
     POLE_DATA -.->|"Missions pour"| BNP
     POLE_DATA -.->|"Missions pour"| AXA
 
-    style POLE_JAVA fill:#f0fdf4,stroke:#16a34a
-    style POLE_DATA fill:#eff6ff,stroke:#2563eb
-    style POLE_BNP fill:#fef3c7,stroke:#d97706
-    style POOL_JAVA fill:#dcfce7,stroke:#86efac
-    style POOL_DATA fill:#dbeafe,stroke:#93c5fd
-    style POOL_BNP fill:#fef9c3,stroke:#fde047
+    style POLE_JAVA fill:transparent,stroke:#16a34a,color:#000
+    style POLE_DATA fill:transparent,stroke:#2563eb,color:#000
+    style POLE_BNP fill:transparent,stroke:#d97706,color:#000
+    style POOL_JAVA fill:transparent,stroke:#16a34a,stroke-dasharray:5 5,color:#000
+    style POOL_DATA fill:transparent,stroke:#2563eb,stroke-dasharray:5 5,color:#000
+    style POOL_BNP fill:transparent,stroke:#d97706,stroke-dasharray:5 5,color:#000
+    style ORG fill:transparent,stroke:#6b7280,color:#000
+    style MGMT fill:transparent,stroke:#6b7280,color:#000
+    style CLIENTS fill:transparent,stroke:#6b7280,color:#000
 ```
 
 ## Modes d'organisation
