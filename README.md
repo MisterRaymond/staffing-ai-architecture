@@ -10,6 +10,8 @@
 - [Diagrammes](#-diagrammes)
 - [Modèle de Données](#-modèle-de-données)
 - [API](#-api)
+- [Agents Claude](#-agents-claude)
+- [Commandes clés](#-commandes-clés)
 - [Infrastructure](#-infrastructure)
 
 ---
@@ -42,18 +44,19 @@ Ce n'est **pas un ATS généraliste**. C'est un outil de **pilotage de staffing*
 
 | Couche | Technologie | Justification |
 |--------|------------|---------------|
-| **Frontend** | Next.js 14 (App Router) + TypeScript | SSR, API Routes, déploiement Vercel |
-| **Styling** | Tailwind CSS + shadcn/ui | Design system rapide et cohérent |
+| **Frontend** | Next.js 15 (App Router) + TypeScript | SSR, API Routes, déploiement Vercel |
+| **UI** | MUI v7 + Tailwind CSS (template Vuexy) | Design system riche et cohérent |
 | **Backend** | Next.js API Routes | Mono-repo MVP, migration possible |
 | **Base de données** | PostgreSQL (Supabase) | Données relationnelles + RLS |
-| **ORM** | Prisma | Typage, migrations, middleware |
+| **ORM** | Prisma v6 | Typage, migrations, middleware |
 | **IA** | Anthropic Claude API | Parsing CV + Matching sémantique |
-| **Auth** | Clerk | Multi-tenant, SSO, 2FA |
-| **Stockage** | Cloudflare R2 | CVs et documents (compatible S3) |
+| **Auth** | NextAuth.js + PrismaAdapter | Multi-tenant, sessions JWT enrichies |
+| **Stockage** | Supabase Storage | CVs et documents |
 | **Paiements** | Stripe | Abonnements + facturation |
 | **Emails** | Resend | Emails transactionnels |
 | **Cache** | Upstash Redis | Cache tenant + rate limiting |
 | **Déploiement** | Vercel + Supabase | Serverless, scalable |
+| **Dev Assistant** | Claude Code (CLI) | Agents IA spécialisés par module |
 
 ---
 
@@ -111,14 +114,95 @@ Tous les diagrammes sont en **Mermaid** (rendus nativement par GitHub).
 
 ## 💾 Modèle de Données
 
-- [Schéma Prisma](./prisma/schema.prisma) — Modèle complet avec relations et enums
+- [Schéma Prisma](./prisma/schema.prisma) — 33 modèles, 24 enums, PostgreSQL
 - [Documentation du schéma](./docs/database/SCHEMA.md)
+
+**Résumé du modèle :**
+- 33 modèles Prisma (Organization, User, Candidate, Mission, Application, Placement...)
+- 24 enums (PipelineStage, PoolStatus, BillingType, Seniority...)
+- 67 permissions seedées sur 14 modules
+- 7 rôles par défaut créés à l'onboarding de chaque tenant
 
 ---
 
 ## 🔌 API
 
 - [Documentation API](./docs/api/API_ROUTES.md) — Toutes les routes REST documentées
+
+---
+
+## 🤖 Agents Claude
+
+Le développement est assisté par une équipe d'agents Claude Code spécialisés.
+Voir la documentation complète : **[docs/AGENTS.md](./docs/AGENTS.md)**
+
+| Agent | Couleur | Rôle |
+|-------|---------|------|
+| `@staffingai-orchestrator` | 🟣 Purple | Chef de projet, coordination globale |
+| `@staffingai-auth-tenant` | 🔵 Blue | NextAuth, middleware, onboarding, RBAC |
+| `@staffingai-candidates` | 🟢 Green | Candidats, vivier, import CV |
+| `@staffingai-pipeline` | 🟠 Orange | Kanban pipeline, activités, évaluations |
+
+---
+
+## ⌨️ Commandes clés
+
+### Développement quotidien
+```bash
+# Lancer l'app en local
+pnpm dev
+
+# Lancer Claude Code (assistant IA)
+claude
+
+# Claude Code en mode autonome (sans validation)
+claude --dangerously-skip-permissions
+```
+
+### Base de données
+```bash
+# Appliquer les migrations
+pnpm db:migrate
+
+# Seeder (permissions + rôles + org demo)
+pnpm db:seed
+
+# Ouvrir Prisma Studio (interface visuelle DB)
+pnpm db:studio
+
+# Regénérer le client Prisma après changement schema
+pnpm db:generate
+
+# Reset complet de la DB (⚠️ supprime toutes les données)
+pnpm db:reset
+```
+
+### Git
+```bash
+# Voir les changements faits par les agents
+git diff
+
+# Annuler les changements non commités
+git checkout .
+
+# Pull les derniers agents/configs
+git pull origin main
+```
+
+### Windows PowerShell (équivalents Linux)
+```powershell
+# rm -rf → 
+Remove-Item -Recurse -Force chemin\du\dossier
+
+# cp →
+Copy-Item source destination
+
+# cat →
+Get-Content fichier
+
+# grep →
+Select-String "pattern" fichier
+```
 
 ---
 
@@ -130,55 +214,51 @@ Estimation pour ~50 tenants actifs :
 |---------|-----------|
 | Vercel Pro | 20€ |
 | Supabase Pro | 25€ |
-| Cloudflare R2 | ~5€ |
+| Supabase Storage | ~5€ |
 | Claude API | ~50-100€ |
-| Clerk | 25€ |
+| Resend | 20€ |
 | Domaine + DNS | 10€ |
-| **Total** | **~135-185€** |
+| **Total** | **~130-180€** |
 
 ---
 
-## 📅 Roadmap MVP (8 semaines)
+## 📅 Phases de développement
 
-- **Semaines 1-2** — Setup projet, modèle de données, auth multi-tenant
-- **Semaines 3-4** — Upload + parsing CV par IA, CRUD candidats/missions
-- **Semaines 5-6** — Matching IA, dashboard financier, pipeline Kanban
-- **Semaines 7-8** — UI polish, onboarding, déploiement, tests pilotes
+| Phase | Statut | Contenu |
+|-------|--------|---------|
+| **Phase 0** | ✅ Terminée | Setup, schema Prisma, NextAuth, middleware multi-tenant, seed, navigation |
+| **Phase 1** | 🔄 En cours | Auth & onboarding tenant, pages candidats, pipeline Kanban |
+| **Phase 2** | ⏳ À venir | Module finance, matching IA, dashboards |
+| **Phase 3** | ⏳ À venir | Intégrations sourcing, notifications, déploiement prod |
 
 ---
 
-## 📁 Structure du projet
+## 📁 Structure du repo
 
 ```
 staffing-ai-architecture/
 ├── README.md
 ├── docs/
+│   ├── AGENTS.md                    ← Équipe d'agents Claude Code
 │   ├── architecture/
 │   │   ├── GLOBAL_ARCHITECTURE.md
 │   │   ├── MULTI_TENANT.md
-│   │   └── AI_MODULE.md
+│   │   ├── AI_MODULE.md
+│   │   ├── FINANCIAL_MODULE.md
+│   │   ├── RBAC.md
+│   │   ├── NOTIFICATIONS.md
+│   │   └── SOURCING_INTEGRATIONS.md
 │   ├── diagrams/
 │   │   ├── system/
-│   │   │   ├── context.md
-│   │   │   └── deployment.md
 │   │   ├── domain/
-│   │   │   ├── class-diagram.md
-│   │   │   ├── erd.md
-│   │   │   ├── enums.md
-│   │   │   └── pipeline-states.md
 │   │   ├── sequences/
-│   │   │   ├── cv-parsing-matching.md
-│   │   │   ├── tenant-onboarding.md
-│   │   │   └── financial-calculation.md
 │   │   └── flows/
-│   │       ├── ai-pipeline.md
-│   │       └── multi-tenant-resolution.md
 │   ├── database/
 │   │   └── SCHEMA.md
 │   └── api/
 │       └── API_ROUTES.md
 ├── prisma/
-│   └── schema.prisma
+│   └── schema.prisma                ← 33 modèles, 24 enums
 └── src/
     └── middleware/
         └── tenant-resolver.ts
